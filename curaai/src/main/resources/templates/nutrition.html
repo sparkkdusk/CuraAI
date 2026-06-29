@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>CuraAI – Nutrition Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #FAF4EC 0%, #f0e8d8 100%); }
+        .upload-zone { border: 2px dashed #d4b896; transition: all 0.2s; }
+        .upload-zone:hover { border-color: #5C3D22; background: #fdf5eb; }
+        .macro-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .health-ring { position:absolute; top:12px; right:12px; width:52px; height:52px; }
+        .health-ring svg { transform: rotate(-90deg); }
+        .ring-bg { fill:none; stroke:rgba(255,255,255,0.25); stroke-width:4; }
+        .ring-fill { fill:none; stroke:#6ee77a; stroke-width:4; stroke-linecap:round; transition: stroke-dasharray 1s ease; }
+    </style>
+</head>
+<body class="min-h-screen flex justify-center px-4 py-8">
+<div class="w-full max-w-[540px]">
+
+    <!-- Logo -->
+    <div class="text-center mb-8">
+        <div class="w-14 h-14 bg-[#5C3D22] rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <i class="ti ti-salad text-white text-3xl"></i>
+        </div>
+        <h1 class="text-2xl font-semibold text-[#2a1a0a]">Nutrition Analyzer</h1>
+        <p class="text-sm text-[#9c7a5a] mt-1">AI-powered food analysis by CuraAI</p>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="bg-white rounded-3xl p-7 border border-[#ede0ce] mb-5">
+        <p class="text-[11px] font-semibold text-[#9c7a5a] tracking-widest uppercase mb-3">Upload meal photo</p>
+
+        <form id="analyzeForm" th:action="@{/nutrition/analyze}" method="post" enctype="multipart/form-data">
+
+            <div class="upload-zone rounded-2xl p-10 text-center cursor-pointer bg-[#fdf9f4]"
+                 id="dropzone" onclick="document.getElementById('imageInput').click()">
+                <i class="ti ti-camera-plus text-[#5C3D22] text-5xl block mb-3"></i>
+                <h3 class="text-sm font-medium text-[#3a2510] mb-1">Drop your meal photo here</h3>
+                <p class="text-xs text-[#b09070]">or click to browse · JPG, PNG, WEBP</p>
+            </div>
+
+            <!-- Preview -->
+            <div id="preview-wrap" class="hidden mt-4 relative rounded-2xl overflow-hidden">
+                <img id="preview-img" src="" alt="Preview"
+                     class="w-full max-h-60 object-cover block">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                <div class="absolute bottom-3 left-3 flex items-center gap-1 text-white text-xs font-medium">
+                    <i class="ti ti-circle-check-filled text-green-400 text-sm"></i> Ready to analyze
+                </div>
+                <button type="button" onclick="removeImg()"
+                        class="absolute top-2 right-2 bg-black/50 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+
+            <input id="imageInput" type="file" name="image" accept="image/*"
+                   class="hidden" onchange="previewImage(this)">
+
+            <button type="submit"
+                    class="w-full mt-5 bg-[#5C3D22] hover:bg-[#4a2f18] text-white py-4 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
+                <i class="ti ti-sparkles text-lg"></i> Analyze Food
+            </button>
+
+        </form>
+    </div>
+
+    <!-- Result Card -->
+    <div th:if="${result}" class="bg-white rounded-3xl p-7 border border-[#ede0ce]">
+
+        <!-- Food image with overlay -->
+        <div class="relative rounded-2xl overflow-hidden mb-5">
+            <img th:src="${imageSrc}" alt="Analyzed food"
+                 class="w-full max-h-56 object-cover block">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#2a1400cc] via-transparent to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-4">
+                <h2 class="text-xl font-semibold text-white mb-1" id="res-name">—</h2>
+                <span class="inline-flex items-center gap-1 bg-white/20 backdrop-blur text-white text-xs px-3 py-1 rounded-full">
+                    <i class="ti ti-sun text-xs"></i>
+                    <span id="res-meal">—</span>
+                </span>
+            </div>
+            <!-- Health Score Ring -->
+            <div class="health-ring">
+                <svg width="52" height="52" viewBox="0 0 52 52">
+                    <circle class="ring-bg" cx="26" cy="26" r="22"/>
+                    <circle class="ring-fill" id="ring-fill" cx="26" cy="26" r="22" stroke-dasharray="0 138"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center text-white text-sm font-bold"
+                     id="res-score">—</div>
+            </div>
+        </div>
+
+        <!-- Calories Hero -->
+        <div class="rounded-2xl p-5 mb-3 flex items-center justify-between"
+             style="background: linear-gradient(135deg, #5C3D22, #8B5E3C)">
+            <div>
+                <p class="text-xs text-white/70 mb-1">Estimated calories</p>
+                <h2 class="text-4xl font-bold text-white" id="res-cal">—</h2>
+                <span class="text-xs text-white/60">kcal per serving</span>
+            </div>
+            <div class="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center">
+                <i class="ti ti-flame text-yellow-300 text-2xl"></i>
+            </div>
+        </div>
+
+        <!-- Macros Grid -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="bg-[#FAF4EC] rounded-2xl p-4 flex items-center gap-3">
+                <div class="macro-icon bg-blue-50"><i class="ti ti-meat text-blue-500 text-lg"></i></div>
+                <div>
+                    <p class="text-[11px] text-[#9c7a5a]">Protein</p>
+                    <p class="text-lg font-semibold text-[#2a1a0a]"><span id="res-protein">—</span><span class="text-xs text-[#b09070] font-normal"> g</span></p>
+                </div>
+            </div>
+            <div class="bg-[#FAF4EC] rounded-2xl p-4 flex items-center gap-3">
+                <div class="macro-icon bg-orange-50"><i class="ti ti-bread text-orange-500 text-lg"></i></div>
+                <div>
+                    <p class="text-[11px] text-[#9c7a5a]">Carbohydrates</p>
+                    <p class="text-lg font-semibold text-[#2a1a0a]"><span id="res-carbs">—</span><span class="text-xs text-[#b09070] font-normal"> g</span></p>
+                </div>
+            </div>
+            <div class="bg-[#FAF4EC] rounded-2xl p-4 flex items-center gap-3">
+                <div class="macro-icon bg-yellow-50"><i class="ti ti-droplet text-yellow-500 text-lg"></i></div>
+                <div>
+                    <p class="text-[11px] text-[#9c7a5a]">Fat</p>
+                    <p class="text-lg font-semibold text-[#2a1a0a]"><span id="res-fat">—</span><span class="text-xs text-[#b09070] font-normal"> g</span></p>
+                </div>
+            </div>
+            <div class="bg-[#FAF4EC] rounded-2xl p-4 flex items-center gap-3">
+                <div class="macro-icon bg-green-50"><i class="ti ti-leaf text-green-500 text-lg"></i></div>
+                <div>
+                    <p class="text-[11px] text-[#9c7a5a]">Fiber</p>
+                    <p class="text-lg font-semibold text-[#2a1a0a]"><span id="res-fiber">—</span><span class="text-xs text-[#b09070] font-normal"> g</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sugar Row -->
+        <div class="bg-[#FAF4EC] rounded-2xl p-4 flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="macro-icon bg-red-50"><i class="ti ti-candy text-red-500 text-lg"></i></div>
+                <div>
+                    <p class="text-[11px] text-[#9c7a5a]">Sugar</p>
+                    <p class="text-lg font-semibold text-[#2a1a0a]"><span id="res-sugar">—</span> g</p>
+                </div>
+            </div>
+            <span class="text-[11px] text-[#b09070]">Added sugars estimate</span>
+        </div>
+
+        <!-- Insight Card -->
+        <div class="bg-[#fdf9f4] border border-[#ede0ce] rounded-2xl p-5">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="ti ti-stethoscope text-[#5C3D22] text-lg"></i>
+                <span class="text-sm font-semibold text-[#3a2510]">Nutritionist insight</span>
+            </div>
+            <p class="text-sm text-[#6b4f35] leading-relaxed" id="res-insight">—</p>
+        </div>
+
+        <p class="text-center text-[11px] text-[#c4a882] mt-4 px-4">
+            Estimates are based on visual analysis and may vary by portion size and preparation method.
+        </p>
+
+        <!-- Hidden raw result for JS parsing -->
+        <span id="raw-result" th:text="${result}" class="hidden"></span>
+    </div>
+
+</div>
+
+<script>
+    function previewImage(input) {
+        if (!input.files || !input.files[0]) return;
+        document.getElementById('preview-img').src = URL.createObjectURL(input.files[0]);
+        document.getElementById('preview-wrap').classList.remove('hidden');
+        document.getElementById('dropzone').classList.add('hidden');
+    }
+    function removeImg() {
+        document.getElementById('preview-wrap').classList.add('hidden');
+        document.getElementById('dropzone').classList.remove('hidden');
+        document.getElementById('imageInput').value = '';
+    }
+
+    function extract(text, key) {
+        const regex = new RegExp(key + ':\\s*(.+)', 'i');
+        const m = text.match(regex);
+        return m ? m[1].trim() : '—';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const raw = document.getElementById('raw-result');
+        if (!raw) return;
+        const text = raw.innerText;
+
+        document.getElementById('res-name').textContent    = extract(text, 'FOOD_NAME');
+        document.getElementById('res-cal').textContent     = extract(text, 'CALORIES');
+        document.getElementById('res-protein').textContent = extract(text, 'PROTEIN');
+        document.getElementById('res-carbs').textContent   = extract(text, 'CARBS');
+        document.getElementById('res-fat').textContent     = extract(text, 'FAT');
+        document.getElementById('res-fiber').textContent   = extract(text, 'FIBER');
+        document.getElementById('res-sugar').textContent   = extract(text, 'SUGAR');
+        document.getElementById('res-meal').textContent    = extract(text, 'MEAL_TYPE');
+        document.getElementById('res-insight').textContent = extract(text, 'INSIGHT');
+
+        const score = parseInt(extract(text, 'HEALTH_SCORE')) || 0;
+        document.getElementById('res-score').textContent = score + '/10';
+        const r = 22, circ = 2 * Math.PI * r;
+        document.getElementById('ring-fill')
+            .setAttribute('stroke-dasharray', (score / 10 * circ) + ' ' + circ);
+    });
+</script>
+</body>
+</html>

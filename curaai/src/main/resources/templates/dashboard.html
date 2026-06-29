@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>CuraAI Dashboard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter&display=swap" rel="stylesheet">
+
+</head>
+
+
+<body class="bg-[#FAF4EC] text-[#2B1F14]">
+
+
+<!-- NAVBAR -->
+
+<nav class="bg-white border-b px-12 py-5 flex justify-between items-center sticky top-0">
+
+
+    <div class="text-2xl font-bold"
+         style="font-family:Playfair Display">
+
+        Cura<span class="text-[#8B5E3C]">AI</span>
+
+    </div>
+
+
+    <div class="flex gap-8 text-sm text-[#6B4D35]">
+
+        <a href="#" class="hover:text-[#8B5E3C]">
+            Dashboard
+        </a>
+
+        <a href="#" class="hover:text-[#8B5E3C]">
+            Exercise
+        </a>
+
+        <a href="#" class="hover:text-[#8B5E3C]">
+            Nutrition
+        </a>
+
+        <a href="#" class="hover:text-[#8B5E3C]">
+            AI Assistant
+        </a>
+
+
+        <a th:href="@{/auth/logout}"
+           class="text-red-500">
+
+            Logout
+
+        </a>
+
+    </div>
+
+
+</nav>
+
+
+
+
+<!-- WELCOME -->
+
+<section class="px-12 pt-12">
+
+
+    <h1 class="text-4xl font-semibold"
+        style="font-family:Playfair Display">
+
+        Welcome to CuraAI
+
+    </h1>
+
+
+    <p class="mt-3 text-[#9A7A60] max-w-xl">
+
+        Your personal health companion. Track your progress, understand your habits, and get intelligent guidance from one place.
+
+    </p>
+
+
+</section>
+
+
+
+
+
+<!-- QUICK ACTIONS -->
+
+
+<section class="px-12 py-10">
+
+
+    <h2 class="text-2xl font-semibold mb-6"
+        style="font-family:Playfair Display">
+
+        Health Features
+
+    </h2>
+
+
+
+
+    <div class="grid md:grid-cols-4 gap-6">
+
+
+
+
+
+        <!-- Exercise -->
+
+
+        <div class="bg-white rounded-3xl p-7 shadow-sm border hover:shadow-xl transition">
+
+
+            <div class="w-12 h-12 rounded-xl bg-[#E8D5C0] flex items-center justify-center">
+
+                <i class="fa-solid fa-dumbbell text-[#8B5E3C]"></i>
+
+            </div>
+
+
+
+            <h3 class="text-xl font-semibold mt-5">
+
+                Exercise Analyzer
+
+            </h3>
+
+
+            <p class="text-sm text-[#9A7A60] mt-3">
+
+                Track workouts, analyze performance and monitor your fitness journey.
+
+            </p>
+
+
+
+            <a href="#"
+               class="inline-block mt-6 bg-[#5C3D22] text-white px-5 py-2 rounded-xl text-sm">
+
+                Open Exercise
+
+            </a>
+
+
+        </div>
+
+
+
+
+
+
+
+        <!-- Nutrition -->
+
+
+        <div class="bg-white rounded-3xl p-7 shadow-sm border hover:shadow-xl transition">
+
+
+            <div class="w-12 h-12 rounded-xl bg-[#E8D5C0] flex items-center justify-center">
+
+                <i class="fa-solid fa-utensils text-[#8B5E3C]"></i>
+
+            </div>
+
+
+
+            <h3 class="text-xl font-semibold mt-5">
+
+                Nutrition Analyzer
+
+            </h3>
+
+
+            <p class="text-sm text-[#9A7A60] mt-3">
+
+                Analyze meals, understand nutrients and improve your eating habits.
+
+            </p>
+
+
+
+            <a th:href="@{/nutrition}"
+               class="inline-block mt-6 bg-[#5C3D22] text-white px-5 py-2 rounded-xl text-sm">
+
+                Analyze Food
+
+            </a>
+
+
+        </div>
+
+
+
+
+
+
+
+        <!-- Prescription -->
+
+
+        <div class="bg-white rounded-3xl p-7 shadow-sm border hover:shadow-xl transition">
+
+
+            <div class="w-12 h-12 rounded-xl bg-[#E8D5C0] flex items-center justify-center">
+
+                <i class="fa-solid fa-file-medical text-[#8B5E3C]"></i>
+
+            </div>
+
+
+
+            <h3 class="text-xl font-semibold mt-5">
+
+                Prescription Manager
+
+            </h3>
+
+
+            <p class="text-sm text-[#9A7A60] mt-3">
+
+                Manage prescriptions, reminders and medication information.
+
+            </p>
+
+
+
+            <a href="#"
+               class="inline-block mt-6 bg-[#5C3D22] text-white px-5 py-2 rounded-xl text-sm">
+
+                Manage
+
+            </a>
+
+
+        </div>
+
+
+
+
+
+
+
+        <!-- AI Assistant -->
+
+
+        <div class="bg-white rounded-3xl p-7 shadow-sm border hover:shadow-xl transition">
+
+
+            <div class="w-12 h-12 rounded-xl bg-[#E8D5C0] flex items-center justify-center">
+
+                <i class="fa-solid fa-robot text-[#8B5E3C]"></i>
+
+            </div>
+
+
+
+            <h3 class="text-xl font-semibold mt-5">
+
+                AI Health Assistant
+
+            </h3>
+
+
+            <p class="text-sm text-[#9A7A60] mt-3">
+
+                Ask health questions and receive personalized AI guidance.
+
+            </p>
+
+
+
+            <a href="#"
+               class="inline-block mt-6 bg-[#5C3D22] text-white px-5 py-2 rounded-xl text-sm">
+
+                Chat Now
+
+            </a>
+
+
+        </div>
+
+
+
+    </div>
+
+
+</section>
+
+
+
+
+
+
+<!-- EMPTY DASHBOARD AREA -->
+
+
+<section class="px-12 pb-16">
+
+
+    <div class="bg-white rounded-3xl p-10 border">
+
+
+        <h2 class="text-2xl font-semibold"
+            style="font-family:Playfair Display">
+
+            Your Health Overview
+
+        </h2>
+
+
+        <p class="text-[#9A7A60] mt-3">
+
+            Your personalized insights will appear here after you start using CuraAI features.
+
+        </p>
+
+
+
+        <div class="grid md:grid-cols-3 gap-5 mt-8">
+
+
+            <div class="bg-[#FAF4EC] rounded-2xl p-5">
+
+                <h4 class="text-sm text-[#9A7A60]">
+                    Activity
+                </h4>
+
+                <p class="mt-3 text-[#6B4D35]">
+                    No activity data yet
+                </p>
+
+            </div>
+
+
+
+            <div class="bg-[#FAF4EC] rounded-2xl p-5">
+
+                <h4 class="text-sm text-[#9A7A60]">
+                    Nutrition
+                </h4>
+
+                <p class="mt-3 text-[#6B4D35]">
+                    No meal analysis yet
+                </p>
+
+            </div>
+
+
+
+            <div class="bg-[#FAF4EC] rounded-2xl p-5">
+
+                <h4 class="text-sm text-[#9A7A60]">
+                    AI Insights
+                </h4>
+
+                <p class="mt-3 text-[#6B4D35]">
+                    Start chatting with CuraAI
+                </p>
+
+            </div>
+
+
+
+        </div>
+
+
+    </div>
+
+
+</section>
+
+
+
+</body>
+
+</html>
