@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CuraAI – Nutrition Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #FAF4EC 0%, #f0e8d8 100%);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* navbar – kept exactly as original styling */
+        .navbar {
+            width: 100%;
+            background: white;
+            border-bottom: 1px solid #ede0ce;
+            padding: 16px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+        .navbar .brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2B1F14;
+        }
+        .navbar .brand span { color: #8B5E3C; }
+        .navbar .nav-links {
+            display: flex;
+            gap: 32px;
+            font-size: 0.9rem;
+            color: #6B4D35;
+        }
+        .navbar .nav-links a {
+            text-decoration: none;
+            color: #6B4D35;
+            transition: color 0.15s;
+        }
+        .navbar .nav-links a:hover { color: #8B5E3C; }
+        .navbar .nav-links a.active {
+            color: #8B5E3C;
+            font-weight: 500;
+        }
+        .navbar .nav-links a.logout { color: #b33c3c; }
+        .navbar .nav-links a.logout:hover { color: #8a2a2a; }
+
+        .app-card {
+            max-width: 540px;
+            width: 100%;
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.06), 0 8px 20px rgba(0,0,0,0.03);
+            padding: 28px 28px 32px;
+            margin: 32px auto;
+            border: 1px solid #ede0ce;
+        }
+        .logo-badge {
+            background: #5C3D22;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+        }
+        .upload-zone {
+            border: 2px dashed #d4b896;
+            background: #fdf9f4;
+            border-radius: 28px;
+            padding: 40px 20px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .upload-zone:hover {
+            border-color: #5C3D22;
+            background: #fdf5eb;
+        }
+        .upload-zone.dragover {
+            border-color: #5C3D22;
+            background: #f5ebe0;
+        }
+        .btn-primary {
+            background: #5C3D22;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background: #4a2f18;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -8px rgba(92, 61, 34, 0.3);
+        }
+        .health-ring {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 60px;
+            height: 60px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .health-ring svg {
+            transform: rotate(-90deg);
+            width: 56px;
+            height: 56px;
+        }
+        .ring-bg { fill: none; stroke: rgba(255,255,255,0.25); stroke-width: 5; }
+        .ring-fill { fill: none; stroke: #6ee77a; stroke-width: 5; stroke-linecap: round; transition: stroke-dasharray 0.8s ease; }
+        .macro-pill {
+            background: #FAF4EC;
+            border-radius: 20px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.1s;
+            border: 1px solid transparent;
+        }
+        .macro-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .insight-card {
+            background: #fdf9f4;
+            border-radius: 24px;
+            padding: 20px 22px;
+            border: 1px solid #ede0ce;
+        }
+        .food-overlay {
+            background: linear-gradient(0deg, rgba(42, 20, 0, 0.7) 0%, rgba(0,0,0,0) 60%);
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+        }
+        .food-img {
+            width: 100%;
+            max-height: 220px;
+            object-fit: cover;
+            border-radius: 24px;
+            display: block;
+        }
+        .preview-container {
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #f2ebe2;
+        }
+        .preview-container img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+        .tag-pill {
+            background: rgba(255,255,255,0.18);
+            backdrop-filter: blur(4px);
+            padding: 4px 14px;
+            border-radius: 40px;
+            color: white;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .cal-hero {
+            background: linear-gradient(135deg, #5C3D22, #8B5E3C);
+            border-radius: 24px;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .text-balance { text-wrap: balance; }
+        .score-number {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: white;
+        }
+        .remove-btn {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.15s;
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+        .remove-btn:hover { background: rgba(0,0,0,0.7); }
+        .hidden { display: none !important; }
+        /* keep original color accents */
+        .text-accent { color: #8B5E3C; }
+        .border-accent { border-color: #ede0ce; }
+        .bg-accent-light { background: #FAF4EC; }
+        .text-muted { color: #9c7a5a; }
+        .text-dark { color: #2a1a0a; }
+        .text-brown { color: #6B4D35; }
+        .bg-brown { background: #5C3D22; }
+        @media (max-width: 640px) {
+            .navbar { padding: 12px 20px; flex-wrap: wrap; gap: 8px; }
+            .navbar .nav-links { gap: 16px; font-size: 0.8rem; flex-wrap: wrap; }
+            .app-card { margin: 16px; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR – fully restored, exactly as original with active state -->
+<nav class="navbar">
+    <div class="brand">Cura<span>AI</span></div>
+    <div class="nav-links">
+        <a th:href="@{/exercise}">Exercise</a>
+        <a th:href="@{/nutrition}" class="active">Nutrition</a>
+        <a th:href="@{/prescription}">Prescription</a>
+        <a th:href="@{/chat}">AI Assistant</a>
+    </div>
+</nav>
+
+<!-- main card -->
+<div class="app-card">
+
+    <!-- header inside card (logo + title) -->
+    <div class="flex items-center gap-3 mb-6">
+        <div class="logo-badge"><i class="ti ti-salad"></i></div>
+        <div>
+            <span class="text-2xl font-bold tracking-tight text-[#2B1F14]">Cura<span class="text-[#8B5E3C]">AI</span></span>
+            <span class="block text-[11px] text-[#9c7a5a] font-medium tracking-wide">nutrition · analyzer</span>
+        </div>
+        <span class="ml-auto text-[11px] bg-[#FAF4EC] px-4 py-1.5 rounded-full text-[#5C3D22] font-medium border border-[#ede0ce]">AI</span>
+    </div>
+
+    <!-- Upload -->
+    <div class="mb-5">
+        <p class="text-[11px] font-semibold text-[#9c7a5a] tracking-widest uppercase mb-2.5 flex items-center gap-2">
+            <i class="ti ti-cloud-upload text-sm"></i> upload meal photo
+        </p>
+
+        <form id="analyzeForm" th:action="@{/nutrition/analyze}" method="post" enctype="multipart/form-data">
+
+            <div id="dropzone" class="upload-zone" onclick="document.getElementById('imageInput').click()">
+                <div class="flex flex-col items-center">
+                    <i class="ti ti-camera-plus text-[#5C3D22] text-5xl mb-3"></i>
+                    <h4 class="text-sm font-semibold text-[#3a2510]">Drop your meal photo here</h4>
+                    <p class="text-xs text-[#b09070] mt-1">or click to browse · JPG, PNG, WEBP</p>
+                </div>
+            </div>
+
+            <!-- preview -->
+            <div id="preview-wrap" class="preview-container hidden mt-4">
+                <img id="preview-img" src="#" alt="preview">
+                <div class="food-overlay"></div>
+                <div class="absolute bottom-3 left-4 flex items-center gap-2">
+                    <span class="tag-pill"><i class="ti ti-circle-check-filled text-green-300 text-sm"></i> ready</span>
+                </div>
+                <button type="button" class="remove-btn" onclick="removeImg()"><i class="ti ti-x"></i></button>
+            </div>
+
+            <input id="imageInput" type="file" name="image" accept="image/*" class="hidden" onchange="previewImage(this)">
+
+            <button type="submit" class="btn-primary mt-5">
+                <i class="ti ti-sparkles text-lg"></i> Analyze Food
+            </button>
+        </form>
+    </div>
+
+    <!-- result card -->
+    <div th:if="${result}" class="mt-2 space-y-5">
+
+        <!-- image + ring -->
+        <div class="relative">
+            <img th:src="${imageSrc}" alt="analyzed food" class="food-img">
+            <div class="food-overlay"></div>
+            <div class="absolute bottom-3 left-4 flex flex-wrap items-center gap-2">
+                <h2 class="text-white text-xl font-bold leading-tight" id="res-name">—</h2>
+                <span class="tag-pill text-[11px]"><i class="ti ti-sun text-yellow-200"></i> <span id="res-meal">—</span></span>
+            </div>
+            <!-- health ring -->
+            <div class="health-ring">
+                <svg viewBox="0 0 56 56">
+                    <circle class="ring-bg" cx="28" cy="28" r="23"/>
+                    <circle class="ring-fill" id="ring-fill" cx="28" cy="28" r="23" stroke-dasharray="0 144.5"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center text-white text-sm font-bold" id="res-score">—</div>
+            </div>
+        </div>
+
+        <!-- calories -->
+        <div class="cal-hero">
+            <div>
+                <span class="text-white/70 text-[11px] font-medium uppercase tracking-wide">estimated calories</span>
+                <div class="flex items-end gap-2">
+                    <span class="text-white text-4xl font-bold" id="res-cal">—</span>
+                    <span class="text-white/50 text-sm font-medium mb-0.5">kcal</span>
+                </div>
+                <span class="text-white/40 text-[10px]">per serving</span>
+            </div>
+            <div class="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <i class="ti ti-flame text-yellow-300 text-2xl"></i>
+            </div>
+        </div>
+
+        <!-- macros grid -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="macro-pill">
+                <div class="macro-icon bg-blue-50"><i class="ti ti-meat text-blue-500 text-lg"></i></div>
+                <div><p class="text-[10px] text-[#9c7a5a] uppercase tracking-wide">protein</p><p class="text-lg font-bold text-[#2a1a0a]"><span id="res-protein">—</span><span class="text-xs font-normal text-[#b09070] ml-0.5">g</span></p></div>
+            </div>
+            <div class="macro-pill">
+                <div class="macro-icon bg-orange-50"><i class="ti ti-bread text-orange-500 text-lg"></i></div>
+                <div><p class="text-[10px] text-[#9c7a5a] uppercase tracking-wide">carbs</p><p class="text-lg font-bold text-[#2a1a0a]"><span id="res-carbs">—</span><span class="text-xs font-normal text-[#b09070] ml-0.5">g</span></p></div>
+            </div>
+            <div class="macro-pill">
+                <div class="macro-icon bg-yellow-50"><i class="ti ti-droplet text-yellow-500 text-lg"></i></div>
+                <div><p class="text-[10px] text-[#9c7a5a] uppercase tracking-wide">fat</p><p class="text-lg font-bold text-[#2a1a0a]"><span id="res-fat">—</span><span class="text-xs font-normal text-[#b09070] ml-0.5">g</span></p></div>
+            </div>
+            <div class="macro-pill">
+                <div class="macro-icon bg-green-50"><i class="ti ti-leaf text-green-500 text-lg"></i></div>
+                <div><p class="text-[10px] text-[#9c7a5a] uppercase tracking-wide">fiber</p><p class="text-lg font-bold text-[#2a1a0a]"><span id="res-fiber">—</span><span class="text-xs font-normal text-[#b09070] ml-0.5">g</span></p></div>
+            </div>
+        </div>
+
+        <!-- sugar row -->
+        <div class="macro-pill bg-[#FAF4EC] border border-[#ede0ce] rounded-2xl flex items-center justify-between px-5 py-3.5">
+            <div class="flex items-center gap-3">
+                <div class="macro-icon bg-red-50"><i class="ti ti-candy text-red-500 text-lg"></i></div>
+                <div><p class="text-[10px] text-[#9c7a5a] uppercase tracking-wide">sugar</p><p class="text-lg font-bold text-[#2a1a0a]"><span id="res-sugar">—</span><span class="text-xs font-normal text-[#b09070] ml-0.5">g</span></p></div>
+            </div>
+            <span class="text-[10px] text-[#b09070] bg-white/60 px-3 py-1 rounded-full">added sugars est.</span>
+        </div>
+
+        <!-- insight -->
+        <div class="insight-card">
+            <div class="flex items-center gap-2.5 mb-2">
+                <i class="ti ti-stethoscope text-[#5C3D22] text-lg"></i>
+                <span class="text-sm font-semibold text-[#3a2510]">Nutritionist insight</span>
+            </div>
+            <p class="text-sm text-[#6B4D35] leading-relaxed" id="res-insight">—</p>
+        </div>
+
+        <p class="text-center text-[10px] text-[#c4a882] pt-1">Estimates based on visual analysis · portion size may vary</p>
+
+        <!-- hidden raw -->
+        <span id="raw-result" th:text="${result}" class="hidden"></span>
+    </div>
+
+    <!-- empty state (when no result) -->
+    <div th:unless="${result}" class="mt-8 text-center text-[#a9886b] text-sm border-t border-[#ede3d8] pt-6">
+        <i class="ti ti-database-off text-2xl block mb-2 opacity-40"></i>
+        <p>Upload a meal photo to get AI-powered nutritional insights</p>
+    </div>
+
+</div>
+
+<script>
+    // preview handlers
+    function previewImage(input) {
+        if (!input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('preview-wrap').classList.remove('hidden');
+            document.getElementById('dropzone').classList.add('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    function removeImg() {
+        document.getElementById('preview-wrap').classList.add('hidden');
+        document.getElementById('dropzone').classList.remove('hidden');
+        document.getElementById('imageInput').value = '';
+    }
+
+    // parse result
+    function extract(text, key) {
+        const regex = new RegExp(key + ':\\s*(.+)', 'i');
+        const m = text.match(regex);
+        return m ? m[1].trim() : '—';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const raw = document.getElementById('raw-result');
+        if (!raw) return;
+        const text = raw.innerText;
+
+        document.getElementById('res-name').textContent = extract(text, 'FOOD_NAME');
+        document.getElementById('res-cal').textContent = extract(text, 'CALORIES');
+        document.getElementById('res-protein').textContent = extract(text, 'PROTEIN');
+        document.getElementById('res-carbs').textContent = extract(text, 'CARBS');
+        document.getElementById('res-fat').textContent = extract(text, 'FAT');
+        document.getElementById('res-fiber').textContent = extract(text, 'FIBER');
+        document.getElementById('res-sugar').textContent = extract(text, 'SUGAR');
+        document.getElementById('res-meal').textContent = extract(text, 'MEAL_TYPE');
+        document.getElementById('res-insight').textContent = extract(text, 'INSIGHT');
+
+        const score = parseInt(extract(text, 'HEALTH_SCORE')) || 0;
+        document.getElementById('res-score').textContent = score + '/10';
+        const r = 23, circ = 2 * Math.PI * r;
+        const fill = document.getElementById('ring-fill');
+        fill.setAttribute('stroke-dasharray', (score / 10 * circ) + ' ' + circ);
+    });
+
+    // drag & drop polish
+    const dropzone = document.getElementById('dropzone');
+    if (dropzone) {
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const input = document.getElementById('imageInput');
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                previewImage(input);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

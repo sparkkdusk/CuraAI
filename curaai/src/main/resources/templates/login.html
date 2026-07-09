@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>CuraAI | Sign In</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter&display=swap" rel="stylesheet">
+
+</head>
+
+
+<body class="min-h-screen bg-[#FAF4EC] flex items-center justify-center">
+
+
+<div class="bg-white w-[420px] rounded-3xl shadow-xl p-10">
+
+
+    <h1 class="text-3xl font-bold text-[#2B1F14]"
+        style="font-family:Playfair Display">
+
+        Welcome Back
+
+    </h1>
+
+
+    <p class="text-[#9A7A60] mt-2 mb-8">
+        Continue your health journey with CuraAI
+    </p>
+
+    <p th:if="${param.error}" class="text-red-600 text-sm mb-4">Invalid email or password</p>
+    <p th:if="${param.registered}" class="text-green-600 text-sm mb-4">Account created — please sign in</p>
+
+    <form th:action="@{/auth/login}" method="post">
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <label class="text-sm text-[#6B4D35]">
+            Email
+        </label>
+
+        <input
+                type="email"
+                name="email"
+                class="w-full mt-2 mb-5 p-3 rounded-xl border"
+                placeholder="Enter email">
+
+
+        <label class="text-sm text-[#6B4D35]">
+            Password
+        </label>
+
+
+        <input
+                type="password"
+                name="password"
+                class="w-full mt-2 mb-6 p-3 rounded-xl border"
+                placeholder="Enter password">
+
+
+
+        <button
+                type="submit"
+                class="w-full bg-[#5C3D22] text-white py-3 rounded-xl font-semibold">
+
+            Sign In
+
+        </button>
+
+
+    </form>
+
+
+
+    <p class="text-center text-sm mt-6 text-[#9A7A60]">
+
+        Don't have an account?
+
+        <a th:href="@{/auth/register}"
+           class="text-[#8B5E3C] font-semibold">
+
+            Create one
+
+        </a>
+
+    </p>
+
+
+</div>
+
+
+</body>
+
+</html>

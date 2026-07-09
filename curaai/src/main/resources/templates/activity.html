@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Activity · CuraAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .pf { font-family: 'Playfair Display', serif; }
+    </style>
+</head>
+
+<body class="bg-[#FAF4EC] text-[#2B1F14]">
+
+<!-- NAVBAR -->
+<nav class="bg-white border-b px-12 py-5 flex justify-between items-center sticky top-0 z-30">
+    <div class="text-2xl font-bold pf">Cura<span class="text-[#8B5E3C]">AI</span></div>
+    <div class="flex gap-8 text-sm text-[#6B4D35]">
+        <a th:href="@{/dashboard}" class="hover:text-[#8B5E3C]">Dashboard</a>
+        <a th:href="@{/exercise}" class="hover:text-[#8B5E3C]">Exercise</a>
+        <a th:href="@{/activity}" class="text-[#8B5E3C] font-medium">Activity</a>
+        <a th:href="@{/nutrition}" class="hover:text-[#8B5E3C]">Nutrition</a>
+        <a th:href="@{/auth/logout}" class="text-red-500">Logout</a>
+    </div>
+</nav>
+
+<!-- HEADER -->
+<section class="px-12 pt-10">
+    <h1 class="text-3xl font-semibold pf">Exercise Activity</h1>
+    <p class="mt-2 text-[#9A7A60] max-w-2xl">
+        Your workout history for the last 7 days, day by day.
+    </p>
+</section>
+
+<section class="px-12 py-8">
+
+    <!-- SUMMARY CARDS -->
+    <div class="grid md:grid-cols-3 gap-5 mb-8">
+
+        <div class="bg-white rounded-2xl p-6 border shadow-sm">
+            <h4 class="text-sm text-[#9A7A60]">Total Minutes</h4>
+            <p class="mt-2 text-3xl font-bold text-[#5C3D22]" th:text="${weeklyMinutes ?: 0}">0</p>
+            <p class="text-xs text-[#9A7A60] mt-1">this week</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 border shadow-sm">
+            <h4 class="text-sm text-[#9A7A60]">Calories Burned</h4>
+            <p class="mt-2 text-3xl font-bold text-[#5C3D22]" th:text="${weeklyCalories ?: 0}">0</p>
+            <p class="text-xs text-[#9A7A60] mt-1">this week</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 border shadow-sm">
+            <h4 class="text-sm text-[#9A7A60]">Active Days</h4>
+            <p class="mt-2 text-3xl font-bold text-[#5C3D22]">
+                <span th:text="${activeDays ?: 0}">0</span><span class="text-lg text-[#9A7A60]">/7</span>
+            </p>
+            <p class="text-xs text-[#9A7A60] mt-1">this week</p>
+        </div>
+
+    </div>
+
+    <!-- DAILY BREAKDOWN -->
+    <div class="bg-white rounded-3xl border shadow-sm p-8">
+
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+            <h2 class="text-xl font-semibold pf">This Week, Day by Day</h2>
+            <a th:href="@{/exercise}" class="bg-[#5C3D22] text-white px-5 py-2.5 rounded-xl text-sm whitespace-nowrap">
+                <i class="fa-solid fa-video mr-2"></i>Start a Workout
+            </a>
+        </div>
+
+        <div class="rounded-2xl border border-[#E8D5C0] overflow-hidden divide-y divide-[#E8D5C0]" th:if="${week != null}">
+
+            <div th:each="day : ${week}" class="px-6 py-5 bg-white">
+
+                <div class="flex items-center justify-between flex-wrap gap-2">
+
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full"
+                              th:style="${'background-color:' + (day.totalMinutes > 0 ? '#8B5E3C' : '#E8D5C0')}"></span>
+                        <span class="text-base font-semibold text-[#2B1F14]" th:text="${day.dayLabel}">Mon</span>
+                        <span class="text-xs text-[#9A7A60]" th:text="${day.date}">2026-07-01</span>
+                    </div>
+
+                    <div class="text-sm text-[#9A7A60]" th:if="${day.totalMinutes == 0}">
+                        Rest day
+                    </div>
+
+                    <div class="text-sm font-medium text-[#6B4D35]" th:if="${day.totalMinutes > 0}">
+                        <span th:text="${day.totalMinutes}">0</span> min ·
+                        <span th:text="${day.totalCalories}">0</span> kcal
+                    </div>
+
+                </div>
+
+                <!-- Individual logged sessions for that day -->
+                <div class="mt-3 flex flex-wrap gap-2" th:if="${not #lists.isEmpty(day.logs)}">
+                    <div th:each="log : ${day.logs}"
+                         class="bg-[#FAF4EC] text-[#6B4D35] text-xs px-3 py-1.5 rounded-lg flex items-center gap-2">
+                        <i class="fa-solid fa-dumbbell text-[#8B5E3C]"></i>
+                        <span th:text="${log.activityType}">Squat</span>
+                        <span class="text-[#9A7A60]">· <span th:text="${log.durationMinutes}">0</span> min</span>
+                        <span class="text-[#9A7A60]" th:if="${log.caloriesBurned != null}">· <span th:text="${log.caloriesBurned}">0</span> kcal</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <p class="text-sm text-[#9A7A60] mt-4" th:if="${week == null}">
+            No activity data available yet. Start a workout to begin tracking your week.
+        </p>
+
+    </div>
+
+</section>
+
+</body>
+</html>

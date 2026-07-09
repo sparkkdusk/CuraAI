@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CuraAI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <style>
+        :root {
+            --cream: #FAF5EC;
+            --paper: #FFFFFF;
+            --ink: #2B2018;
+            --umber: #5C3D22;
+            --clay: #8B5E3C;
+            --sand: #F3E9DD;
+            --line: #E9DCC9;
+            --muted: #A48B6E;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--cream);
+            color: var(--ink);
+        }
+        .display { font-family: 'Fraunces', serif; }
+
+        #chatWindow { scroll-behavior: smooth; }
+        #chatWindow::-webkit-scrollbar { width: 5px; }
+        #chatWindow::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
+        #chatWindow::-webkit-scrollbar-track { background: transparent; }
+
+        .msg-in { animation: rise .28s ease-out; }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* signature: heartbeat pulse loading indicator */
+        .pulse-wrap { width: 34px; height: 20px; position: relative; }
+        .pulse-line {
+            stroke: var(--clay);
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 60;
+            stroke-dashoffset: 60;
+            animation: draw 1.4s ease-in-out infinite;
+        }
+        @keyframes draw {
+            0% { stroke-dashoffset: 60; }
+            50% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -60; }
+        }
+
+        textarea#userInput { field-sizing: content; }
+        textarea#userInput:focus { outline: none; }
+
+        /* rendered Markdown inside bot bubbles */
+        .bot-bubble ul, .bot-bubble ol {
+            padding-left: 1.25rem;
+            margin: 0.5rem 0;
+        }
+        .bot-bubble li { margin: 0.15rem 0; }
+        .bot-bubble p { margin: 0.5rem 0; }
+        .bot-bubble p:first-child { margin-top: 0; }
+        .bot-bubble p:last-child { margin-bottom: 0; }
+        .bot-bubble strong { font-weight: 600; color: var(--umber); }
+        .bot-bubble code {
+            background: rgba(43,32,24,0.06);
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .msg-in { animation: none; }
+            .pulse-line { animation: none; }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+<nav class="bg-[var(--paper)] border-b border-[var(--line)] px-6 md:px-10 py-4 flex justify-between items-center shrink-0">
+    <a th:href="@{/}" class="display text-xl font-semibold tracking-tight text-[var(--ink)]">
+        Cura<span class="text-[var(--clay)]">AI</span>
+    </a>
+    <div class="flex items-center gap-1 text-sm">
+        <a th:href="@{/exercise}" class="text-[var(--umber)] hover:text-[var(--clay)] px-3 py-2 rounded-lg transition-colors">Exercise</a>
+        <a th:href="@{/nutrition}" class="text-[var(--umber)] hover:text-[var(--clay)] px-3 py-2 rounded-lg transition-colors">Nutrition</a>
+        <a th:href="@{/prescription}" class="text-[var(--umber)] hover:text-[var(--clay)] px-3 py-2 rounded-lg transition-colors">Prescription</a>
+        <a th:href="@{/chat}" class="text-[var(--clay)] font-medium px-3 py-2 rounded-lg">AI Assistant</a>
+    </div>
+</nav>
+
+<section class="flex-1 flex flex-col overflow-hidden">
+    <div class="flex-1 overflow-hidden flex flex-col max-w-3xl w-full mx-auto px-4 md:px-6">
+
+        <div id="chatWindow" class="flex-1 overflow-y-auto py-8 space-y-6">
+
+            <!-- empty-state / intro: only shown when there's no saved history -->
+            <div th:if="${#lists.isEmpty(history)}" class="flex flex-col items-center text-center pt-6 pb-4">
+                <div class="w-11 h-11 rounded-full bg-[var(--umber)] text-white flex items-center justify-center text-sm font-semibold mb-4">
+                    AI
+                </div>
+                <h2 class="display text-2xl font-semibold text-[var(--ink)]">How can I help today?</h2>
+                <p class="text-sm text-[var(--muted)] mt-2 max-w-sm">
+                    Ask about diet, exercise, sleep, or general wellness — I'll always tell you when to see a real doctor.
+                </p>
+            </div>
+
+            <!-- saved conversation history, rendered from the database -->
+            <div th:each="msg : ${history}"
+                 th:class="${msg.sender == 'user'} ? 'msg-in flex items-start gap-3 justify-end' : 'msg-in flex items-start gap-3'">
+                <div th:if="${msg.sender != 'user'}"
+                     class="w-8 h-8 rounded-full bg-[var(--umber)] text-white flex items-center justify-center text-[11px] font-semibold shrink-0 mt-0.5">
+                    AI
+                </div>
+                <div th:text="${msg.content}"
+                     th:class="${msg.sender == 'user'}
+                        ? 'bg-[var(--umber)] text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-[78%] text-[15px] leading-relaxed whitespace-pre-wrap'
+                        : 'bot-bubble bg-[var(--sand)] text-[var(--ink)] rounded-2xl rounded-tl-md px-4 py-3 max-w-[78%] text-[15px] leading-relaxed'">
+                </div>
+            </div>
+
+            <!-- new messages inserted here by JS -->
+        </div>
+
+        <div class="shrink-0 pb-6 pt-2">
+            <div id="inputBar"
+                 class="flex items-end gap-2 bg-[var(--paper)] border border-[var(--line)] rounded-2xl px-3 py-2.5 shadow-[0_1px_2px_rgba(43,32,24,0.04)] focus-within:border-[var(--clay)] transition-colors">
+                <textarea id="userInput" rows="1" placeholder="Message CuraAI..."
+                          class="flex-1 resize-none bg-transparent text-[15px] leading-6 py-1.5 px-2 max-h-40 placeholder:text-[var(--muted)]"></textarea>
+                <button id="sendBtn" aria-label="Send message"
+                        class="bg-[var(--umber)] hover:bg-[var(--ink)] text-white w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-arrow-up text-sm"></i>
+                </button>
+            </div>
+            <p class="text-center text-xs text-[var(--muted)] mt-2.5">
+                CuraAI can make mistakes. For urgent concerns, consult a doctor.
+            </p>
+        </div>
+    </div>
+</section>
+
+<script th:inline="javascript">
+    const chatWindow = document.getElementById('chatWindow');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    function scrollToEnd() {
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function appendMessage(text, sender) {
+        const row = document.createElement('div');
+        row.className = sender === 'user'
+            ? 'msg-in flex items-start gap-3 justify-end'
+            : 'msg-in flex items-start gap-3';
+
+        const bubble = document.createElement('div');
+        bubble.className = sender === 'user'
+            ? 'bg-[var(--umber)] text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-[78%] text-[15px] leading-relaxed whitespace-pre-wrap'
+            : 'bot-bubble bg-[var(--sand)] text-[var(--ink)] rounded-2xl rounded-tl-md px-4 py-3 max-w-[78%] text-[15px] leading-relaxed';
+
+        if (sender === 'bot') {
+            bubble.innerHTML = DOMPurify.sanitize(marked.parse(text));
+        } else {
+            bubble.textContent = text;
+        }
+
+        if (sender === 'bot') {
+            const avatar = document.createElement('div');
+            avatar.className = 'w-8 h-8 rounded-full bg-[var(--umber)] text-white flex items-center justify-center text-[11px] font-semibold shrink-0 mt-0.5';
+            avatar.textContent = 'AI';
+            row.appendChild(avatar);
+        }
+        row.appendChild(bubble);
+        chatWindow.appendChild(row);
+        scrollToEnd();
+    }
+
+    function showTyping() {
+        const row = document.createElement('div');
+        row.id = 'typingIndicator';
+        row.className = 'msg-in flex items-start gap-3';
+        row.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-[var(--umber)] text-white flex items-center justify-center text-[11px] font-semibold shrink-0 mt-0.5">AI</div>
+            <div class="bg-[var(--sand)] rounded-2xl rounded-tl-md px-4 py-3.5 flex items-center">
+                <svg class="pulse-wrap" viewBox="0 0 60 20" xmlns="http://www.w3.org/2000/svg">
+                    <polyline class="pulse-line" points="0,10 14,10 19,2 24,18 29,10 60,10" />
+                </svg>
+            </div>`;
+        chatWindow.appendChild(row);
+        scrollToEnd();
+    }
+
+    function removeTyping() {
+        const el = document.getElementById('typingIndicator');
+        if (el) el.remove();
+    }
+
+    async function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message || sendBtn.disabled) return;
+
+        appendMessage(message, 'user');
+        userInput.value = '';
+        sendBtn.disabled = true;
+        showTyping();
+
+        try {
+            const res = await fetch('/api/chat/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            if (!res.ok) throw new Error('Request failed');
+            const data = await res.json();
+            removeTyping();
+            appendMessage(data.reply, 'bot');
+        } catch (err) {
+            removeTyping();
+            appendMessage("Something went wrong. Please try again.", 'bot');
+        } finally {
+            sendBtn.disabled = false;
+            userInput.focus();
+        }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // re-render any bot messages restored from saved history as Markdown
+    // (Thymeleaf's th:text inserted them as escaped plain text on page load)
+    document.querySelectorAll('.bot-bubble').forEach(el => {
+        el.innerHTML = DOMPurify.sanitize(marked.parse(el.textContent));
+    });
+
+    // jump to the latest message (including any restored history) on load
+    scrollToEnd();
+    userInput.focus();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CuraAI | Intelligent Health Companion</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+
+
+        :root {
+            --cream-deep:   #2B1F14;
+            --cream-warm:   #FAF4EC;
+            --cocoa:        #8B5E3C;
+            --cocoa-light:  #B8845A;
+            --cocoa-pale:   #E8D5C0;
+            --latte:        #C9A882;
+            --mocha:        #5C3D22;
+            --oat:          #F2E8DA;
+            --cream-mid:    #EDE0CF;
+            --biscuit:      #D4B896;
+            --text:         #2B1F14;
+            --text-mid:     #6B4D35;
+            --text-muted:   #9A7A60;
+            --border:       #E0CDB8;
+            --card:         #FFFFFF;
+            --card2:        #F7F0E6;
+            --page:         #FAF4EC;
+        }
+
+        html { scroll-behavior: smooth; }
+        #dashboard-section, #exercise-section, #ai-assistant-section, #prescription-section, #nutrition-section, #features-section {
+            scroll-margin-top: 84px;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--page); color: var(--text); overflow-x: hidden; line-height: 1.6; }
+        .serif { font-family: 'Playfair Display', serif; }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 52px;
+            background: rgba(250,244,236,0.94);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--cocoa-pale);
+        }
+        .nav-logo { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+        .nav-logo span { color: var(--cocoa); }
+        .nav-links { display: flex; gap: 32px; list-style: none; }
+        .nav-links a { font-size: 12px; font-weight: 500; color: var(--text-muted); text-decoration: none; letter-spacing: 0.07em; text-transform: uppercase; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--cocoa); }
+        .nav-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-ghost { font-size: 12px; font-weight: 500; color: var(--text-mid); background: none; border: 1px solid var(--border); border-radius: 100px; padding: 9px 22px; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+        .btn-ghost:hover { border-color: var(--cocoa); color: var(--cocoa); }
+        .btn-fill { font-size: 12px; font-weight: 600; color: #FAF4EC; background: var(--mocha); border: none; border-radius: 100px; padding: 9px 24px; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+        .btn-fill:hover { background: var(--cocoa); }
+
+        /* HERO */
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding-top: 74px;
+            overflow: hidden;
+        }
+        .hero-left {
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 72px 48px 72px 52px;
+        }
+        .eyebrow {
+            display: inline-flex; align-items: center; gap: 10px;
+            font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--cocoa); margin-bottom: 26px;
+        }
+        .eyebrow::before { content:''; display:block; width:24px; height:1px; background: var(--cocoa); }
+
+        /* Hero tagline — punchy & specific */
+        .hero-headline {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(46px, 4.8vw, 72px);
+            font-weight: 600; line-height: 1.08; letter-spacing: -0.01em;
+            color: var(--text); margin-bottom: 28px;
+        }
+        .hero-headline em { font-style: italic; color: var(--cocoa-light); }
+
+        /* Specific problem-solution statement */
+        .hero-body {
+            font-size: 16px; line-height: 1.8; color: var(--text-muted); font-weight: 400;
+            max-width: 420px; margin-bottom: 36px;
+        }
+
+        /* Feature pill row under body copy */
+        .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 40px; }
+        .hero-pill {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+            color: var(--mocha); background: rgba(139,94,60,0.09); border: 1px solid rgba(139,94,60,0.18);
+            border-radius: 100px; padding: 6px 14px;
+        }
+
+        .hero-ctas { display: flex; align-items: center; gap: 16px; }
+        .cta-main {
+            font-size: 13px; font-weight: 600; color: #FAF4EC;
+            background: var(--mocha); border: none; border-radius: 100px;
+            padding: 15px 36px; cursor: pointer; transition: all 0.25s;
+            font-family: 'Inter', sans-serif;
+        }
+        .cta-main:hover { background: var(--cocoa); transform: translateY(-1px); }
+        .cta-outline {
+            font-size: 13px; font-weight: 500; color: var(--text-mid);
+            background: none; border: 1px solid var(--border); border-radius: 100px;
+            padding: 15px 30px; cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .cta-outline:hover { color: var(--cocoa); border-color: var(--cocoa-pale); }
+
+        .hero-right {
+            position: relative;
+            background: linear-gradient(140deg, #EFE3D0 0%, #F5EBDD 50%, #EAD8C2 100%);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .hero-right::before {
+            content: '';
+            position: absolute;
+            width: 480px; height: 480px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(184,132,90,0.18) 0%, transparent 70%);
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+        .hero-right::after {
+            content: '';
+            position: absolute;
+            width: 260px; height: 260px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(139,94,60,0.12) 0%, transparent 70%);
+            top: 15%; right: 12%;
+        }
+
+        /* Hero widgets */
+        .ex-widget { position: relative; z-index: 2; width: 330px; display: flex; flex-direction: column; gap: 12px; }
+        .ex-card { background: rgba(255,255,255,0.90); backdrop-filter: blur(16px); border: 1px solid rgba(200,168,130,0.25); border-radius: 20px; padding: 20px 24px; box-shadow: 0 4px 20px rgba(43,31,20,0.08); }
+        .ex-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .ex-card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 500; }
+        .ex-badge { font-size: 11px; background: rgba(139,94,60,0.1); color: var(--cocoa); border-radius: 100px; padding: 4px 12px; font-weight: 500; }
+        .ex-big { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 600; color: var(--text); line-height: 1; }
+        .ex-big span { font-size: 15px; color: var(--text-muted); font-family: 'Inter', sans-serif; font-weight: 400; margin-left: 4px; }
+        .bar-row { display: flex; align-items: flex-end; gap: 5px; height: 48px; margin-top: 14px; }
+        .bar { flex: 1; border-radius: 4px 4px 0 0; background: rgba(200,168,130,0.2); }
+        .bar.hi { background: var(--cocoa); }
+        .bar.med { background: var(--latte); opacity: 0.85; }
+        .ring-row { display: flex; gap: 12px; align-items: center; }
+        .ring-wrap { position: relative; width: 60px; height: 60px; flex-shrink: 0; }
+        .ring-wrap svg { width: 60px; height: 60px; transform: rotate(-90deg); }
+        .ring-bg { stroke: rgba(200,168,130,0.2); }
+        .ring-fg { stroke: var(--cocoa); stroke-linecap: round; stroke-dasharray: 157; stroke-dashoffset: 40; }
+        .ring-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--text); }
+        .ring-info strong { font-size: 13px; color: var(--text); display: block; font-weight: 600; }
+        .ring-info span { font-size: 12px; color: var(--text-muted); font-weight: 400; }
+        .ai-bubble { background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); border: 1px solid rgba(200,168,130,0.25); border-radius: 16px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 10px; box-shadow: 0 2px 14px rgba(43,31,20,0.07); }
+        .ai-dot-wrap { display: flex; gap: 3px; margin-top: 4px; }
+        .ai-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cocoa); }
+        .ai-dot:nth-child(2) { opacity: 0.55; }
+        .ai-dot:nth-child(3) { opacity: 0.25; }
+        .ai-bubble p { font-size: 13px; line-height: 1.55; color: var(--text-muted); font-weight: 400; }
+        .ai-bubble p strong { color: var(--mocha); font-weight: 600; }
+
+        /* WHAT'S INSIDE SECTION — replaces marquee */
+        .inside-strip {
+            background: var(--mocha);
+            padding: 28px 52px;
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        .inside-label {
+            font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+            color: rgba(250,244,236,0.5); white-space: nowrap; margin-right: 32px; flex-shrink: 0;
+        }
+        .inside-features {
+            display: flex; gap: 0; flex: 1; flex-wrap: nowrap;
+        }
+        .inside-feat {
+            flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+            padding: 0 16px; border-left: 1px solid rgba(250,244,236,0.12); text-align: center;
+        }
+        .inside-feat:first-child { border-left: none; }
+        .inside-feat-icon {
+            width: 32px; height: 32px; border-radius: 9px;
+            background: rgba(250,244,236,0.1); display: flex; align-items: center; justify-content: center;
+        }
+        .inside-feat-icon svg { width: 16px; height: 16px; stroke: rgba(250,244,236,0.8); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+        .inside-feat-name { font-size: 11px; font-weight: 600; color: rgba(250,244,236,0.85); letter-spacing: 0.04em; }
+
+        /* SECTION BASE */
+        .sec-label { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cocoa); margin-bottom: 16px; }
+        .sec-label::before { content:''; width:20px; height:1px; background: var(--cocoa); }
+        .sec-title { font-family: 'Playfair Display', serif; font-size: clamp(34px, 3.5vw, 52px); font-weight: 600; line-height: 1.12; color: var(--text); max-width: 520px; }
+        .sec-title em { font-style: italic; color: var(--cocoa-light); }
+
+        /* DASHBOARD SECTION */
+        .dashboard-section { padding: 100px 52px; background: var(--cream-mid); }
+        .dashboard-header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 52px; }
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .dashboard-row2 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+        .d-card { background: var(--card); border-radius: 20px; border: 1px solid var(--border); padding: 24px; box-shadow: 0 2px 16px rgba(43,31,20,0.05); }
+        .d-card-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 500; margin-bottom: 10px; }
+        .d-card-value { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 600; color: var(--text); line-height: 1; }
+        .d-card-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .d-card-accent { border-left: 3px solid var(--cocoa); }
+        .d-card-accent2 { border-left: 3px solid var(--latte); }
+        .d-mini-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 500; margin-bottom: 6px; }
+        .d-mini-val { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; color: var(--text); }
+        .d-mini-sub { font-size: 11px; color: var(--text-muted); }
+        .d-bar-mini { height: 4px; background: var(--cocoa-pale); border-radius: 100px; margin-top: 12px; overflow: hidden; }
+        .d-bar-mini-fill { height: 100%; border-radius: 100px; background: var(--cocoa); }
+        .d-welcome { background: linear-gradient(135deg, var(--mocha) 0%, #3D2512 100%); border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; min-height: 160px; border: none; box-shadow: 0 4px 24px rgba(43,31,20,0.15); }
+        .d-welcome-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: #FAF4EC; line-height: 1.2; }
+        .d-welcome-sub { font-size: 13px; color: rgba(250,244,236,0.6); margin-top: 6px; font-weight: 400; }
+        .d-welcome-insight { font-size: 12px; color: rgba(250,244,236,0.8); background: rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; margin-top: 14px; border: 1px solid rgba(255,255,255,0.12); }
+        .d-quick-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--mocha); background: rgba(139,94,60,0.1); border-radius: 100px; padding: 5px 12px; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
+
+        /* EXERCISE SECTION */
+        .exercise-section { padding: 100px 52px; background: var(--page); }
+        .ex-main-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 52px; align-items: start; }
+        .ex-copy { padding-top: 8px; }
+        .ex-copy p { font-size: 15px; line-height: 1.8; color: var(--text-muted); font-weight: 400; margin: 18px 0 32px; max-width: 380px; }
+        .tracker-ui { background: var(--card); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 28px rgba(43,31,20,0.08); }
+        .tracker-top { background: linear-gradient(135deg, #F0E4D3 0%, #EBD9C5 100%); padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        .tracker-top-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: var(--text); }
+        .tracker-top-date { font-size: 12px; color: var(--cocoa); font-weight: 500; }
+        .tracker-body { padding: 22px 28px; }
+        .week-row { display: flex; align-items: flex-end; gap: 8px; height: 80px; margin-bottom: 6px; }
+        .week-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; }
+        .week-bar-track { flex: 1; width: 100%; background: rgba(200,168,130,0.12); border-radius: 6px 6px 0 0; display: flex; align-items: flex-end; overflow: hidden; }
+        .week-bar-fill { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.6s ease; }
+        .week-day { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+        .week-bar-fill.today { background: var(--cocoa); }
+        .week-bar-fill.done { background: var(--latte); opacity: 0.85; }
+        .week-bar-fill.rest { background: rgba(200,168,130,0.12); }
+        .tracker-divider { height: 1px; background: var(--border); }
+        .workout-list { padding: 18px 28px; display: flex; flex-direction: column; gap: 10px; }
+        .workout-item { display: flex; align-items: center; gap: 14px; background: var(--card2); border-radius: 14px; padding: 14px 18px; border: 1px solid transparent; transition: border-color 0.2s; }
+        .workout-item:hover { border-color: var(--border); }
+        .workout-icon { width: 38px; height: 38px; border-radius: 11px; background: rgba(139,94,60,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .workout-icon svg { width: 17px; height: 17px; stroke: var(--cocoa); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+        .workout-name { font-size: 14px; font-weight: 600; color: var(--text); }
+        .workout-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 400; }
+        .workout-kcal { margin-left: auto; text-align: right; }
+        .workout-kcal strong { font-size: 15px; font-weight: 600; color: var(--cocoa); display: block; }
+        .workout-kcal span { font-size: 11px; color: var(--text-muted); }
+        .workout-done { width: 20px; height: 20px; border-radius: 50%; background: rgba(139,94,60,0.15); display: flex; align-items: center; justify-content: center; margin-left: 8px; flex-shrink: 0; }
+        .workout-done svg { width: 10px; height: 10px; stroke: var(--cocoa); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        .ring-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); }
+        .ring-metric { background: var(--card); padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .rm-ring { position: relative; width: 52px; height: 52px; }
+        .rm-ring svg { width: 52px; height: 52px; transform: rotate(-90deg); }
+        .rm-ring-lbl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--text); }
+        .rm-name { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); font-weight: 500; }
+        .rm-val { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: var(--text); line-height: 1; }
+
+        /* AI CHAT SECTION */
+        .chat-section { background: linear-gradient(155deg, #EEE0CC 0%, #F5EBDB 100%); padding: 100px 52px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .chat-ui { background: var(--card); border-radius: 22px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 4px 28px rgba(43,31,20,0.1); }
+        .chat-header { background: linear-gradient(135deg, #EFE3D0 0%, #EAD9C3 100%); padding: 18px 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+        .chat-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--mocha); display: flex; align-items: center; justify-content: center; }
+        .chat-avatar svg { width: 16px; height: 16px; stroke: #FAF4EC; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+        .chat-hname { font-size: 14px; font-weight: 600; color: var(--text); }
+        .chat-hstatus { font-size: 11px; color: var(--cocoa); display: flex; align-items: center; gap: 5px; font-weight: 500; }
+        .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #6ABF8A; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .chat-msgs { padding: 20px 20px 12px; display: flex; flex-direction: column; gap: 12px; min-height: 240px; }
+        .msg { max-width: 80%; }
+        .msg-user { align-self: flex-end; background: var(--mocha); border-radius: 16px 16px 4px 16px; padding: 12px 16px; font-size: 13px; color: #FAF4EC; line-height: 1.5; }
+        .msg-ai { align-self: flex-start; background: var(--card2); border-radius: 16px 16px 16px 4px; padding: 12px 16px; font-size: 13px; color: var(--text-muted); line-height: 1.6; font-weight: 400; border: 1px solid var(--border); }
+        .msg-ai strong { color: var(--mocha); font-weight: 600; }
+        .chat-input-row { margin: 8px 16px 16px; background: var(--card2); border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; padding: 12px 16px; }
+        .chat-input-row span { font-size: 13px; color: var(--text-muted); flex: 1; font-weight: 400; }
+        .chat-send { width: 32px; height: 32px; border-radius: 50%; background: var(--mocha); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .chat-send:hover { background: var(--cocoa); }
+        .chat-send svg { width: 13px; height: 13px; stroke: #FAF4EC; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* FEATURES GRID */
+        .features-section { padding: 100px 52px; }
+        .features-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: end; margin-bottom: 52px; }
+        .features-intro-copy { font-size: 15px; line-height: 1.8; color: var(--text-muted); font-weight: 400; max-width: 380px; }
+        .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--border); border-radius: 24px; overflow: hidden; }
+        .feat-card { background: var(--card); padding: 36px 30px; transition: background 0.25s; }
+        .feat-card:hover { background: var(--card2); }
+        .feat-icon { width: 44px; height: 44px; border-radius: 13px; background: rgba(139,94,60,0.09); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+        .feat-icon svg { width: 20px; height: 20px; stroke: var(--cocoa); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+        .feat-card h3 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+        .feat-card p { font-size: 13px; line-height: 1.7; color: var(--text-muted); font-weight: 400; }
+        .feat-card-detail { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
+        .feat-detail-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-mid); font-weight: 400; }
+        .feat-detail-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--cocoa); flex-shrink: 0; opacity: 0.6; }
+
+        /* PRESCRIPTION SECTION */
+        .prescription-section { padding: 100px 52px; background: var(--oat); display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .rx-ui { background: var(--card); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 28px rgba(43,31,20,0.08); }
+        .rx-header { background: linear-gradient(135deg, #EFE3D0 0%, #EAD9C3 100%); padding: 20px 26px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .rx-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; color: var(--text); }
+        .rx-badge { font-size: 11px; background: rgba(139,94,60,0.12); color: var(--cocoa); border-radius: 100px; padding: 4px 14px; font-weight: 600; }
+        .rx-body { padding: 24px 26px; display: flex; flex-direction: column; gap: 14px; }
+        .rx-item { display: flex; align-items: center; gap: 14px; background: var(--card2); border-radius: 14px; padding: 16px; border: 1px solid var(--border); }
+        .rx-icon { width: 40px; height: 40px; border-radius: 12px; background: rgba(139,94,60,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .rx-icon svg { width: 18px; height: 18px; stroke: var(--cocoa); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+        .rx-name { font-size: 14px; font-weight: 600; color: var(--text); }
+        .rx-dose { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .rx-tag { margin-left: auto; font-size: 11px; border-radius: 100px; padding: 4px 12px; font-weight: 500; flex-shrink: 0; }
+        .rx-tag.safe { background: rgba(106,191,138,0.12); color: #3A7D5C; }
+        .rx-tag.check { background: rgba(200,168,130,0.2); color: var(--mocha); }
+        .rx-ai-note { margin: 0 26px 20px; background: rgba(139,94,60,0.06); border: 1px solid var(--cocoa-pale); border-radius: 12px; padding: 14px 16px; display: flex; gap: 10px; align-items: flex-start; }
+        .rx-ai-note p { font-size: 13px; color: var(--text-mid); line-height: 1.55; }
+        .rx-ai-note strong { color: var(--mocha); font-weight: 600; }
+
+        /* NUTRITION SECTION */
+        .nutrition-section { padding: 100px 52px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 52px; align-items: center; }
+        .nutrition-ui { background: var(--card); border-radius: 24px; border: 1px solid var(--border); padding: 28px; box-shadow: 0 4px 24px rgba(43,31,20,0.07); }
+        .nut-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 22px; }
+        .nut-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; color: var(--text); }
+        .nut-date { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+        .macro-bars { display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px; }
+        .macro-row { display: flex; flex-direction: column; gap: 6px; }
+        .macro-top { display: flex; justify-content: space-between; }
+        .macro-name { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+        .macro-val { font-size: 12px; color: var(--cocoa); font-weight: 600; }
+        .macro-track { height: 5px; background: rgba(200,168,130,0.18); border-radius: 100px; overflow: hidden; }
+        .macro-fill { height: 100%; border-radius: 100px; }
+        .calorie-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .cal-card { background: var(--card2); border-radius: 14px; padding: 16px; }
+        .cal-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+        .cal-val { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 600; color: var(--text); line-height: 1; }
+        .cal-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+        .food-scan-btn { width: 100%; background: rgba(139,94,60,0.08); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--cocoa); cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+        .food-scan-btn:hover { background: rgba(139,94,60,0.16); }
+        .food-scan-btn svg { width: 16px; height: 16px; stroke: var(--cocoa); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* CTA */
+        .cta-section { padding: 80px 52px 100px; }
+        .cta-box { background: linear-gradient(145deg, #EFE0CC 0%, #EAD8C2 55%, #E4DACC 100%); border-radius: 30px; padding: 80px 60px; text-align: center; position: relative; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 8px 48px rgba(43,31,20,0.1); }
+        .cta-box::before { content:''; position:absolute; width:420px; height:420px; border-radius:50%; background: radial-gradient(circle, rgba(139,94,60,0.15) 0%, transparent 70%); top:-120px; right:-80px; pointer-events:none; }
+        .cta-box::after { content:''; position:absolute; width:300px; height:300px; border-radius:50%; background: radial-gradient(circle, rgba(92,61,34,0.1) 0%, transparent 70%); bottom:-80px; left:-50px; pointer-events:none; }
+        .cta-eyebrow { font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--cocoa); margin-bottom:16px; font-weight:600; }
+        .cta-h { font-family:'Playfair Display',serif; font-size:clamp(38px,4vw,60px); font-weight:600; color:var(--text); line-height:1.1; margin-bottom:18px; position:relative; z-index:1; }
+        .cta-h em { font-style:italic; color:var(--cocoa-light); }
+        .cta-sub { font-size:15px; color:var(--text-muted); font-weight:400; line-height:1.75; max-width:420px; margin:0 auto 44px; position:relative; z-index:1; }
+        .cta-btns { display:flex; justify-content:center; gap:14px; position:relative; z-index:1; }
+        .cta-btn-main { font-size:13px; font-weight:600; color:#FAF4EC; background:var(--mocha); border:none; border-radius:100px; padding:16px 40px; cursor:pointer; transition:all 0.2s; font-family:'Inter',sans-serif; }
+        .cta-btn-main:hover { background:var(--cocoa); transform:translateY(-1px); }
+        .cta-btn-ghost { font-size:13px; font-weight:500; color:var(--text-mid); background:none; border:1px solid var(--border); border-radius:100px; padding:16px 30px; cursor:pointer; transition:all 0.2s; font-family:'Inter',sans-serif; }
+        .cta-btn-ghost:hover { color:var(--cocoa); border-color:var(--cocoa-pale); }
+
+        /* FOOTER */
+        footer { background: var(--cream-deep); padding:56px 52px 32px; }
+        .footer-top { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:44px; border-bottom:1px solid rgba(250,244,236,0.1); margin-bottom:28px; }
+        .footer-brand p { font-size:13px; color:rgba(250,244,236,0.5); margin-top:10px; max-width:220px; line-height:1.65; font-weight:400; }
+        .footer-col h4 { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--latte); margin-bottom:16px; }
+        .footer-col a { display:block; font-size:13px; color:rgba(250,244,236,0.45); text-decoration:none; margin-bottom:10px; transition:color 0.2s; font-weight:400; }
+        .footer-col a:hover { color:rgba(250,244,236,0.85); }
+        .footer-cols { display:flex; gap:52px; }
+        .footer-bottom { display:flex; justify-content:space-between; font-size:12px; color:rgba(250,244,236,0.22); font-weight:400; }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #FAF4EC; }
+        .footer-logo span { color: var(--latte); }
+
+        /* REVEAL */
+        .reveal { opacity:0; transform:translateY(24px); transition:opacity 0.7s ease, transform 0.7s ease; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+
+        /* SHARED UTILS */
+        .check-list { list-style:none; display:flex; flex-direction:column; gap:12px; margin-bottom:36px; }
+        .check-item { display:flex; align-items:center; gap:12px; font-size:14px; color:var(--text-muted); font-weight:400; }
+        .check-bullet { width:20px; height:20px; border-radius:50%; background:rgba(139,94,60,0.14); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .check-bullet svg { width:10px; height:10px; stroke:var(--cocoa); fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+        .query-list { list-style:none; display:flex; flex-direction:column; gap:10px; }
+        .query-item { font-size:13px; color:var(--text-muted); padding:12px 16px; background:rgba(139,94,60,0.05); border-radius:10px; border:1px solid var(--border); font-weight:400; }
+
+        /* RESPONSIVE */
+        @media(max-width:900px){
+            nav { padding:16px 20px; }
+            .nav-links { display:none; }
+            .hero, .ex-main-grid, .chat-section, .nutrition-section, .prescription-section { grid-template-columns:1fr; }
+            .hero-right { height:360px; }
+            .hero-left { padding:60px 20px; }
+            .features-section, .cta-section { padding-left:20px; padding-right:20px; }
+            .feat-grid { grid-template-columns:1fr 1fr; }
+            .chat-section, .prescription-section { padding:64px 20px; }
+            .nutrition-section { padding:64px 20px; }
+            .exercise-section { padding:64px 20px; }
+            .dashboard-section { padding:60px 20px; }
+            .dashboard-grid { grid-template-columns:1fr 1fr; }
+            .dashboard-row2 { grid-template-columns:1fr 1fr; }
+            footer { padding:44px 20px 28px; }
+            .footer-top { flex-direction:column; gap:36px; }
+            .footer-cols { flex-wrap:wrap; gap:32px; }
+            .dashboard-header-row { flex-direction:column; align-items:flex-start; gap:16px; }
+            .inside-strip { padding:20px; flex-direction:column; gap:20px; }
+            .inside-features { flex-wrap:wrap; gap:12px; }
+            .inside-feat { border-left:none; flex: 0 0 calc(33% - 8px); }
+            .features-intro { grid-template-columns:1fr; gap:16px; }
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <div class="nav-logo">Cura<span>AI</span></div>
+    <ul class="nav-links">
+        <li><a href="#dashboard-section">Dashboard</a></li>
+        <li><a href="#exercise-section">Exercise</a></li>
+        <li><a href="#nutrition-section">Nutrition</a></li>
+        <li><a href="#prescription-section">Prescriptions</a></li>
+        <li><a href="#ai-assistant-section">AI Assistant</a></li>
+    </ul>
+    <div class="nav-actions">
+
+        <a th:href="@{/auth/login}" class="btn-ghost">
+            Sign In
+        </a>
+
+        <a th:href="@{/auth/register}" class="btn-fill">
+            Get Started
+        </a>
+
+    </div>
+</nav>
+
+<!-- HERO — stronger opening, no fake numbers -->
+<section class="hero">
+    <div class="hero-left">
+        <div class="eyebrow">AI Health Platform </div>
+        <h1 class="serif hero-headline">
+            The Ultimate Synthesis<br>of <em>Intelligence</em><br>and care.
+        </h1>
+        <p class="hero-body">
+            CuraAI connects your workouts, meals, and medications into a single intelligent health layer — then answers questions, spots patterns, and guides your next move with full context of your history.
+        </p>
+        <div class="hero-pills">
+            <span class="hero-pill">Exercise Tracker</span>
+            <span class="hero-pill">Meal Scanner</span>
+            <span class="hero-pill">Prescription AI</span>
+            <span class="hero-pill">Health Assistant</span>
+            <span class="hero-pill">Dashboard</span>
+        </div>
+        <div class="hero-ctas">
+            <a th:href="@{/auth/register}" class="cta-main" style="text-decoration:none;display:inline-block">Try CuraAI →</a>
+            <a href="#features-section" class="cta-outline" style="text-decoration:none;display:inline-block">See Features</a>
+        </div>
+    </div>
+
+    <div class="hero-right">
+        <div class="ex-widget">
+            <div class="ex-card">
+                <div class="ex-card-header">
+                    <span class="ex-card-title">Today's Activity</span>
+                    <span class="ex-badge">In Progress</span>
+                </div>
+                <div class="ex-big">487 <span>kcal burned</span></div>
+                <div class="bar-row">
+                    <div class="bar med" style="height:42%"></div>
+                    <div class="bar" style="height:30%"></div>
+                    <div class="bar hi" style="height:75%"></div>
+                    <div class="bar hi" style="height:90%"></div>
+                    <div class="bar med" style="height:65%"></div>
+                    <div class="bar hi" style="height:80%"></div>
+                    <div class="bar" style="height:22%"></div>
+                </div>
+            </div>
+            <div class="ex-card">
+                <div class="ring-row">
+                    <div class="ring-wrap">
+                        <svg viewBox="0 0 64 64">
+                            <circle class="ring-bg" cx="32" cy="32" r="26" fill="none" stroke-width="5"/>
+                            <circle class="ring-fg" cx="32" cy="32" r="26" fill="none" stroke-width="5"/>
+                        </svg>
+                        <div class="ring-label">83%</div>
+                    </div>
+                    <div class="ring-info">
+                        <strong>Weekly Training Goal</strong>
+                        <span>5 of 6 sessions completed</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-bubble">
+                <div class="ai-dot-wrap">
+                    <div class="ai-dot"></div>
+                    <div class="ai-dot"></div>
+                    <div class="ai-dot"></div>
+                </div>
+                <p><strong>CuraAI:</strong> You've had 5 high-intensity sessions this week. Consider a lighter session today to support recovery.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- WHAT'S INSIDE — replaces the scrolling marquee -->
+<div class="inside-strip">
+    <span class="inside-label">What's inside</span>
+    <div class="inside-features">
+        <div class="inside-feat">
+            <div class="inside-feat-icon">
+                <svg viewBox="0 0 24 24"><path d="M6.5 6.5h11M6.5 17.5h11M4 9.5l-2 2.5 2 2.5M20 9.5l2 2.5-2 2.5M7 12h10"/></svg>
+            </div>
+            <span class="inside-feat-name">Exercise Analyser</span>
+        </div>
+        <div class="inside-feat">
+            <div class="inside-feat-icon">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <span class="inside-feat-name">AI Health Assistant</span>
+        </div>
+        <div class="inside-feat">
+            <div class="inside-feat-icon">
+                <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <span class="inside-feat-name">Nutrition Scanner</span>
+        </div>
+        <div class="inside-feat">
+            <div class="inside-feat-icon">
+                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <span class="inside-feat-name">Health Dashboard</span>
+        </div>
+        <div class="inside-feat">
+            <div class="inside-feat-icon">
+                <svg viewBox="0 0 24 24"><path d="M10.5 20H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v2"/><circle cx="18" cy="18" r="3"/><path d="M22 22l-1.5-1.5"/></svg>
+            </div>
+            <span class="inside-feat-name">Prescription Manager</span>
+        </div>
+        <div class="inside-feat">
+            <div class="inside-feat-icon">
+                <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+            </div>
+            <span class="inside-feat-name">Macro Intelligence</span>
+        </div>
+    </div>
+</div>
+
+<!-- USER DASHBOARD SECTION -->
+<section class="dashboard-section reveal" id="dashboard-section">
+    <div class="dashboard-header-row">
+        <div>
+            <div class="sec-label">User Dashboard</div>
+            <h2 class="serif sec-title">Your health at a<br><em>single glance.</em></h2>
+        </div>
+        <p style="font-size:14px;color:var(--text-muted);max-width:300px;line-height:1.8;font-weight:400;text-align:right">
+            Every metric, insight, and recommendation unified in one personalised view — updated as you move through your day.
+        </p>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="d-welcome">
+            <div>
+                <div class="d-welcome-name">Good morning.<br>Ready to make progress?</div>
+                <div class="d-welcome-sub">Sunday, 28 June 2026 · Week 26</div>
+            </div>
+            <div class="d-welcome-insight">
+                Your recovery score is <strong style="color:#FAF4EC">87 / 100</strong> today. Your body is well-prepared for a moderate-intensity training session.
+            </div>
+            <span class="d-quick-pill">↑ 12% stronger this month</span>
+        </div>
+
+        <div class="d-card d-card-accent">
+            <div class="d-card-label">Weekly Activity</div>
+            <div class="d-card-value">5 / 6</div>
+            <div class="d-card-sub">sessions completed</div>
+            <div class="d-bar-mini" style="margin-top:16px"><div class="d-bar-mini-fill" style="width:83%"></div></div>
+        </div>
+
+        <div class="d-card d-card-accent2">
+            <div class="d-card-label">Calorie Balance</div>
+            <div class="d-card-value" style="font-size:28px">−240</div>
+            <div class="d-card-sub">kcal deficit today</div>
+            <div class="d-bar-mini" style="margin-top:16px"><div class="d-bar-mini-fill" style="width:62%;background:var(--latte)"></div></div>
+        </div>
+    </div>
+
+    <div class="dashboard-row2">
+        <div class="d-card">
+            <div class="d-mini-label">Recovery Score</div>
+            <div class="d-mini-val">87</div>
+            <div class="d-mini-sub">Excellent range</div>
+            <div class="d-bar-mini"><div class="d-bar-mini-fill" style="width:87%"></div></div>
+        </div>
+        <div class="d-card">
+            <div class="d-mini-label">Protein</div>
+            <div class="d-mini-val">92g</div>
+            <div class="d-mini-sub">Target: 140g</div>
+            <div class="d-bar-mini"><div class="d-bar-mini-fill" style="width:66%;background:var(--latte)"></div></div>
+        </div>
+        <div class="d-card">
+            <div class="d-mini-label">Active Minutes</div>
+            <div class="d-mini-val">42</div>
+            <div class="d-mini-sub">Goal: 60 min</div>
+            <div class="d-bar-mini"><div class="d-bar-mini-fill" style="width:70%"></div></div>
+        </div>
+        <div class="d-card">
+            <div class="d-mini-label">Health Score</div>
+            <div class="d-mini-val" style="color:var(--cocoa)">84</div>
+            <div class="d-mini-sub">Excellent range</div>
+            <div class="d-bar-mini"><div class="d-bar-mini-fill" style="width:84%"></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- EXERCISE SECTION — elevated, full section -->
+<section class="exercise-section reveal" id="exercise-section">
+    <div class="sec-label">Exercise Analyser</div>
+    <h2 class="serif sec-title" style="margin-bottom:52px">Performance tracking<br><em>built for precision.</em></h2>
+
+    <div class="ex-main-grid">
+        <div class="ex-copy">
+            <p>Log every session, visualise weekly consistency, and get AI-calibrated recovery recommendations based on your training load. Every workout feeds your evolving health profile.</p>
+            <ul class="check-list">
+                <li class="check-item"><span class="check-bullet"><svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 2.5"/></svg></span>Weekly performance chart broken down by day and intensity</li>
+                <li class="check-item"><span class="check-bullet"><svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 2.5"/></svg></span>Calories burned and active minutes tracked per session</li>
+                <li class="check-item"><span class="check-bullet"><svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 2.5"/></svg></span>AI recovery score adjusted to your actual training volume</li>
+                <li class="check-item"><span class="check-bullet"><svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 2.5"/></svg></span>Per-session breakdown: sets, duration, muscle groups, effort</li>
+                <li class="check-item"><span class="check-bullet"><svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 2.5"/></svg></span>Move, Active, and Session rings synced to your weekly goal</li>
+            </ul>
+            <button class="cta-main" style="font-size:13px;padding:14px 30px">Open Exercise Tracker →</button>
+        </div>
+
+        <div class="tracker-ui">
+            <div class="tracker-top">
+                <span class="tracker-top-title">Weekly Activity</span>
+                <span class="tracker-top-date">Jun 22 – 28, 2026</span>
+            </div>
+            <div class="tracker-body">
+                <div class="week-row">
+                    <div class="week-bar-wrap"><div class="week-bar-track"><div class="week-bar-fill done" style="height:55%"></div></div><span class="week-day">Mon</span></div>
+                    <div class="week-bar-wrap"><div class="week-bar-track"><div class="week-bar-fill done" style="height:80%"></div></div><span class="week-day">Tue</span></div>
+                    <div class="week-bar-wrap"><div class="week-bar-track"><div class="week-bar-fill rest" style="height:18%"></div></div><span class="week-day">Wed</span></div>
+                    <div class="week-bar-wrap"><div class="week-bar-track"><div class="week-bar-fill done" style="height:70%"></div></div><span class="week-day">Thu</span></div>
+                    <div class="week-bar-wrap"><div class="week-bar-track"><div class="week-bar-fill done" style="height:90%"></div></div><span class="week-day">Fri</span></div>
+                    <div class="week-bar-wrap"><div class="week-bar-track"><div class="week-bar-fill done" style="height:65%"></div></div><span class="week-day">Sat</span></div>
+                    <div class="week-bar-wrap"><div class="week-bar-track"><div class="week-bar-fill today" style="height:45%"></div></div><span class="week-day" style="color:var(--cocoa)">Today</span></div>
+                </div>
+            </div>
+
+            <div class="tracker-divider"></div>
+            <div class="workout-list">
+                <div class="workout-item">
+                    <div class="workout-icon"><svg viewBox="0 0 24 24"><path d="M6.5 6.5h11M6.5 17.5h11M4 9.5l-2 2.5 2 2.5M20 9.5l2 2.5-2 2.5M7 12h10"/></svg></div>
+                    <div><div class="workout-name">Upper Body Strength</div><div class="workout-meta">42 min · 3 sets · Chest & Shoulders</div></div>
+                    <div class="workout-kcal"><strong>312</strong><span>kcal</span></div>
+                    <div class="workout-done"><svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 2.5"/></svg></div>
+                </div>
+                <div class="workout-item">
+                    <div class="workout-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v8M9 10l3-1 3 1M9 21l3-5 3 5"/></svg></div>
+                    <div><div class="workout-name">Morning Run</div><div class="workout-meta">28 min · 4.2 km · Cardio</div></div>
+                    <div class="workout-kcal"><strong>175</strong><span>kcal</span></div>
+                    <div class="workout-done"><svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 2.5"/></svg></div>
+                </div>
+                <div class="workout-item" style="opacity:0.5;border:1px solid var(--border)">
+                    <div class="workout-icon"><svg viewBox="0 0 24 24"><rect x="4" y="14" width="4" height="6" rx="1"/><rect x="16" y="14" width="4" height="6" rx="1"/><path d="M8 17h8M3 15h2M19 15h2"/></svg></div>
+                    <div><div class="workout-name">Core & Mobility</div><div class="workout-meta">Planned · 20 min</div></div>
+                    <div class="workout-kcal"><strong style="color:var(--text-muted)">~120</strong><span>kcal</span></div>
+                </div>
+            </div>
+
+            <div class="tracker-divider"></div>
+            <div class="ring-metrics">
+                <div class="ring-metric">
+                    <div class="rm-ring"><svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="22" fill="none" stroke="rgba(200,168,130,0.15)" stroke-width="4"/><circle cx="28" cy="28" r="22" fill="none" stroke="#8B5E3C" stroke-width="4" stroke-linecap="round" stroke-dasharray="138" stroke-dashoffset="34" transform="rotate(-90 28 28)"/></svg><div class="rm-ring-lbl">75%</div></div>
+                    <div class="rm-name">Move</div><div class="rm-val">487 kcal</div>
+                </div>
+                <div class="ring-metric">
+                    <div class="rm-ring"><svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="22" fill="none" stroke="rgba(200,168,130,0.15)" stroke-width="4"/><circle cx="28" cy="28" r="22" fill="none" stroke="#C9A882" stroke-width="4" stroke-linecap="round" stroke-dasharray="138" stroke-dashoffset="55" transform="rotate(-90 28 28)"/></svg><div class="rm-ring-lbl">60%</div></div>
+                    <div class="rm-name">Active</div><div class="rm-val">42 min</div>
+                </div>
+                <div class="ring-metric">
+                    <div class="rm-ring"><svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="22" fill="none" stroke="rgba(200,168,130,0.15)" stroke-width="4"/><circle cx="28" cy="28" r="22" fill="none" stroke="#B8845A" stroke-width="4" stroke-linecap="round" stroke-dasharray="138" stroke-dashoffset="23" transform="rotate(-90 28 28)"/></svg><div class="rm-ring-lbl">83%</div></div>
+                    <div class="rm-name">Sessions</div><div class="rm-val">5 / 6</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- AI CHAT SECTION -->
+<section class="chat-section reveal" id="ai-assistant-section">
+    <div>
+        <div class="sec-label">AI Health Assistant</div>
+        <h2 class="serif sec-title">Ask anything.<br><em>Receive real answers.</em></h2>
+        <p style="font-size:15px;line-height:1.8;color:var(--text-muted);font-weight:400;margin:18px 0 28px;max-width:380px">
+            CuraAI draws on your complete health record — workouts, nutrition, medications — to deliver answers specific to you, not generic guidance.
+        </p>
+        <ul class="query-list">
+            <li class="query-item">"Why am I experiencing fatigue despite adequate rest?"</li>
+            <li class="query-item">"What should I eat before an early morning run?"</li>
+            <li class="query-item">"Is my current training volume appropriate for my goals?"</li>
+        </ul>
+    </div>
+
+    <div class="chat-ui">
+        <div class="chat-header">
+            <div class="chat-avatar"><svg viewBox="0 0 24 24"><path d="M12 2a8 8 0 0 1 8 8c0 5.4-8 14-8 14S4 15.4 4 10a8 8 0 0 1 8-8z"/><circle cx="12" cy="10" r="3"/></svg></div>
+            <div>
+                <div class="chat-hname">CuraAI Health Assistant</div>
+                <div class="chat-hstatus"><span class="live-dot"></span> Available · Personalised Guidance</div>
+            </div>
+        </div>
+        <div class="chat-msgs">
+            <div class="msg"><div class="msg-user">I feel tired even after 8 hours of sleep. Should I be concerned?</div></div>
+            <div class="msg"><div class="msg-ai">Reviewing your past 7 days — <strong>5 high-intensity sessions</strong> and <strong>protein intake 18% below target</strong> — your fatigue appears recovery-related rather than a health concern. Increasing protein today and scheduling a lighter session tomorrow should help considerably.</div></div>
+            <div class="msg"><div class="msg-user">Which protein sources would you recommend?</div></div>
+            <div class="msg"><div class="msg-ai">Eggs, Greek yoghurt, and lentils are excellent choices. <strong>Aim for an additional 35–40g today.</strong> Shall I generate a meal plan for this evening?</div></div>
+        </div>
+        <div class="chat-input-row">
+            <span>Ask your health question…</span>
+            <button class="chat-send"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+        </div>
+    </div>
+</section>
+
+<!-- PRESCRIPTION SECTION -->
+<section class="prescription-section reveal" id="prescription-section">
+    <div>
+        <div class="sec-label">Prescription Manager</div>
+        <h2 class="serif sec-title">Medications managed<br><em>with intelligence.</em></h2>
+        <p style="font-size:15px;line-height:1.8;color:var(--text-muted);font-weight:400;margin:18px 0 32px;max-width:360px">
+            Scan prescriptions, identify potential interactions, and receive plain-language explanations of dosage, timing, and side effects — cross-referenced with your personal health data.
+        </p>
+        <ul class="check-list">
+            <li class="check-item"><span class="check-bullet"><svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 2.5"/></svg></span>Instant interaction screening across all active medications</li>
+            <li class="check-item"><span class="check-bullet"><svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 2.5"/></svg></span>Dosage reminders synced to your daily schedule</li>
+            <li class="check-item"><span class="check-bullet"><svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 2.5"/></svg></span>Side-effect patterns linked to your activity and nutrition data</li>
+        </ul>
+        <button class="cta-main" style="font-size:13px;padding:14px 30px">Manage Prescriptions →</button>
+    </div>
+
+    <div class="rx-ui">
+        <div class="rx-header">
+            <span class="rx-title">Active Prescriptions</span>
+            <span class="rx-badge">3 Medications</span>
+        </div>
+        <div class="rx-body">
+            <div class="rx-item">
+                <div class="rx-icon"><svg viewBox="0 0 24 24"><path d="M10.5 20H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v2"/><circle cx="18" cy="18" r="3"/><path d="M22 22l-1.5-1.5"/></svg></div>
+                <div><div class="rx-name">Metformin 500mg</div><div class="rx-dose">Twice daily · with meals</div></div>
+                <span class="rx-tag safe">No conflicts</span>
+            </div>
+            <div class="rx-item">
+                <div class="rx-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <div><div class="rx-name">Atorvastatin 20mg</div><div class="rx-dose">Once daily · evening</div></div>
+                <span class="rx-tag safe">No conflicts</span>
+            </div>
+            <div class="rx-item">
+                <div class="rx-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                <div><div class="rx-name">Vitamin D3 2000IU</div><div class="rx-dose">Once daily · morning</div></div>
+                <span class="rx-tag check">Review timing</span>
+            </div>
+        </div>
+        <div class="rx-ai-note">
+            <div class="ai-dot-wrap" style="margin-top:2px"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
+            <p><strong>CuraAI:</strong> Taking Vitamin D3 alongside your morning Metformin may enhance absorption. Consider shifting to a lunchtime dose based on your current meal patterns.</p>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES GRID — with real detail bullets -->
+<section class="features-section reveal" id="features-section">
+    <div class="features-intro">
+        <div>
+            <div class="sec-label">Core Capabilities</div>
+            <h2 class="serif sec-title">Everything you need,<br><em>thoughtfully integrated.</em></h2>
+        </div>
+        <p class="features-intro-copy">Six deeply connected modules — each powerful on its own, exponentially smarter when your data flows between them.</p>
+    </div>
+
+    <div class="feat-grid">
+        <div class="feat-card">
+            <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M6.5 6.5h11M6.5 17.5h11M4 9.5l-2 2.5 2 2.5M20 9.5l2 2.5-2 2.5M7 12h10"/></svg></div>
+            <h3>Exercise Analyser</h3>
+            <p>Log every session and track weekly performance across strength, cardio, and mobility workouts.</p>
+            <div class="feat-card-detail">
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Daily activity chart with intensity levels by day</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Per-session: sets, reps, duration, muscles worked</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>AI recovery score calibrated to your training load</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Move, Active, and Session rings with weekly goals</div>
+            </div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+            <h3>AI Health Assistant</h3>
+            <p>Ask health questions and receive answers grounded in your actual data — not generic guidance.</p>
+            <div class="feat-card-detail">
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Reads your workout history, nutrition logs, and medications</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Explains fatigue, soreness, and nutrition gaps in context</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Generates meal plans and recovery suggestions on demand</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Conversational, no forms or dashboards needed</div>
+            </div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+            <h3>Nutrition Analyser</h3>
+            <p>Photograph any meal for instant macro and calorie breakdowns — no manual logging required.</p>
+            <div class="feat-card-detail">
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>AI identifies ingredients and portion estimates from a photo</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Protein, carbs, fats, and calories shown immediately</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Nutritional gaps flagged against your daily targets</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Results cross-referenced with exercise data</div>
+            </div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <h3>Health Dashboard</h3>
+            <p>Monitor trends across activity, nutrition, and wellbeing — proactive rather than reactive.</p>
+            <div class="feat-card-detail">
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Daily health score aggregated from all modules</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Calorie deficit / surplus tracked throughout the day</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>AI insight surfaced on your dashboard every morning</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Weekly trends and progress vs. personal goals</div>
+            </div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg></div>
+            <h3>Macro Intelligence</h3>
+            <p>Track protein, carbs, and fats with AI-guided targets that adjust to your actual training volume.</p>
+            <div class="feat-card-detail">
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Visual progress bars for protein, carbs, fats daily</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Targets auto-updated based on workout intensity</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Consumed vs. remaining calorie view at a glance</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Syncs with Nutrition Analyser scan results</div>
+            </div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M10.5 20H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v2"/><circle cx="18" cy="18" r="3"/><path d="M22 22l-1.5-1.5"/></svg></div>
+            <h3>Prescription Manager</h3>
+            <p>Scan prescriptions, screen for interactions, and understand your medications in plain language.</p>
+            <div class="feat-card-detail">
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Scan any prescription label to add it instantly</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Drug interaction screening across your full medication list</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Timing advice personalised to your meal and sleep patterns</div>
+                <div class="feat-detail-item"><span class="feat-detail-dot"></span>Side effects cross-checked with activity and nutrition logs</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- NUTRITION SECTION -->
+<div class="nutrition-section reveal" id="nutrition-section">
+    <div class="nutrition-ui">
+        <div class="nut-header">
+            <span class="nut-title">Nutrition Today</span>
+            <span class="nut-date">Sun, 28 Jun 2026</span>
+        </div>
+        <div class="macro-bars">
+            <div class="macro-row">
+                <div class="macro-top"><span class="macro-name">Protein</span><span class="macro-val">92g / 140g</span></div>
+                <div class="macro-track"><div class="macro-fill" style="width:66%;background:var(--cocoa)"></div></div>
+            </div>
+            <div class="macro-row">
+                <div class="macro-top"><span class="macro-name">Carbohydrates</span><span class="macro-val">180g / 220g</span></div>
+                <div class="macro-track"><div class="macro-fill" style="width:82%;background:var(--latte)"></div></div>
+            </div>
+            <div class="macro-row">
+                <div class="macro-top"><span class="macro-name">Fats</span><span class="macro-val">44g / 65g</span></div>
+                <div class="macro-track"><div class="macro-fill" style="width:68%;background:var(--biscuit)"></div></div>
+            </div>
+        </div>
+        <div class="calorie-row">
+            <div class="cal-card"><div class="cal-lbl">Consumed</div><div class="cal-val">1,640</div><div class="cal-sub">kcal today</div></div>
+            <div class="cal-card"><div class="cal-lbl">Remaining</div><div class="cal-val" style="color:var(--cocoa)">560</div><div class="cal-sub">kcal to target</div></div>
+        </div>
+        <button class="food-scan-btn">
+            <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Photograph a meal to analyse it
+        </button>
+    </div>
+
+    <div>
+        <div class="sec-label">Nutrition Analyser</div>
+        <h2 class="serif sec-title">Nutritional insight<br><em>without the effort.</em></h2>
+        <p style="font-size:15px;line-height:1.8;color:var(--text-muted);font-weight:400;margin:18px 0 32px;max-width:360px">
+            Photograph your plate or describe your meal. CuraAI breaks down every macronutrient, identifies nutritional gaps, and correlates findings with your exercise and recovery data.
+        </p>
+        <button class="cta-main" style="font-size:13px;padding:14px 30px">Try Nutrition Analyser →</button>
+    </div>
+</div>
+
+<!-- CTA -->
+<section class="cta-section reveal">
+    <div class="cta-box">
+        <div class="cta-eyebrow">Built for AI Hackathon 2026</div>
+        <h2 class="cta-h">Health intelligence<br><em>that actually knows you.</em></h2>
+        <p class="cta-sub">CuraAI brings together everything your body generates — workouts, meals, and medications — so your AI companion can give advice that's genuinely yours.</p>
+        <div class="cta-btns">
+            <a th:href="@{/auth/register}" class="cta-btn-main" style="text-decoration:none;display:inline-block">Try CuraAI →</a>
+            <a href="#features-section" class="cta-btn-ghost" style="text-decoration:none;display:inline-block">Explore Features</a>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-top">
+        <div class="footer-brand">
+            <div class="footer-logo">Cura<span>AI</span></div>
+            <p>Intelligent health guidance. Built for real people pursuing real goals.</p>
+        </div>
+        <div class="footer-cols">
+            <div class="footer-col">
+                <h4>Product</h4>
+                <a href="#">Exercise Analyser</a>
+                <a href="#">AI Health Assistant</a>
+                <a href="#">Nutrition Analyser</a>
+                <a href="#">Prescription Manager</a>
+                <a href="#">Health Dashboard</a>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <a href="#">About CuraAI</a>
+                <a href="#">Hackathon Build</a>
+                <a href="#">Careers</a>
+                <a href="#">Press</a>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Data Use</a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2026 CuraAI. All rights reserved.</span>
+        <span>CuraAI is not a substitute for professional medical advice.</span>
+    </div>
+</footer>
+
+<script>
+    const obs = new IntersectionObserver(els => {
+        els.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.07 });
+    document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+</script>
+</body>
+</html>
