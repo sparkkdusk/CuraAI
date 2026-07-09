@@ -71,8 +71,8 @@ Supported exercises:
 
 ### Backend
 
--JAVA
--Spring Boot 
+- JAVA
+- Spring Boot 
 
 ### AI & Machine Learning
 
@@ -91,7 +91,37 @@ Supported exercises:
 ---
 
 ## Project Structure
+## Project Structure
 
+```text
+CuraAI/
+│
+├── curaai/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/
+│   │   │   │   └── com/curaai/curaai/
+│   │   │   │       ├── config/
+│   │   │   │       ├── controller/
+│   │   │   │       ├── dto/
+│   │   │   │       ├── model/
+│   │   │   │       ├── repository/
+│   │   │   │       ├── service/
+│   │   │   │       └── CuraaiApplication.java
+│   │   │   └── resources/
+│   │   └── test/
+│   ├── .mvn/
+│   ├── Dockerfile
+│   ├── pom.xml
+│   ├── mvnw
+│   ├── mvnw.cmd
+│   └── .gitignore
+│
+├── mediapipe-tasks-vision-0.10.14/
+├── screenshots/
+├── README.md
+└── LICENSE
+```
 
 
 ---
