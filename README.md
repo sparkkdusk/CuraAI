@@ -157,16 +157,42 @@ cd CuraAI
 5. View and save your results.
 
 ---
-
 ## Screenshots
 
-* Home Screen 
-* Exercise Tracker
-* Food Analyzer
-* Prescription Analyzer
-* Chatbot Interface
+### Home Screen
+
+![Home Screen](screenshots/cura_homepage.jpeg)
 
 ---
+
+### AI Exercise Tracker
+
+**Exercise Detection**
+![Exercise Detection](screenshots/cura_exercise.jpeg)
+
+---
+
+### Food Calorie Analyzer
+
+**Food Upload**
+![Food Upload](screenshots/cura_nutrition.jpeg)
+
+---
+
+### Prescription Analyzer
+
+**Prescription Upload**
+![Prescription Upload](screenshots/cura_prescription.jpeg)
+
+---
+
+### AI Health Chatbot
+
+**Chat Interface**
+![Chat Interface](screenshots/cura_chatbot.jpeg)
+
+**Health Consultation**
+![Health Consultation](screenshots/cura_chatbot2.jpeg)
 
 ## Future Improvements
 
