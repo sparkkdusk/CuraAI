@@ -159,7 +159,7 @@ cd CuraAI
 ---
 ## Screenshots
 
-### Home Screen
+### Dashboard
 
 ![Home Screen](screenshots/cura_homepage.jpeg)
 
@@ -188,10 +188,7 @@ cd CuraAI
 
 ### AI Health Chatbot
 
-**Chat Interface**
-![Chat Interface](screenshots/cura_chatbot.jpeg)
-
-**Health Consultation**
+**Health Consultation Chat**
 ![Health Consultation](screenshots/cura_chatbot2.jpeg)
 
 ## Future Improvements
