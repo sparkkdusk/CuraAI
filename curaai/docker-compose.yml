@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: curaai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: curaai
+      POSTGRES_USER: curaai
+      POSTGRES_PASSWORD: curaai_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - curaai_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U curaai -d curaai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional: lightweight DB admin UI for local dev
+  adminer:
+    image: adminer:latest
+    container_name: curaai-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  curaai_pgdata:

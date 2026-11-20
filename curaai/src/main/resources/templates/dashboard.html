@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>CuraAI Dashboard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+
+    <style>
+        :root{--forest:#26372b;--pine:#18251d;--moss:#63755f;--sage:#aebda7;--mist:#e2e9dc;--oat:#f4f0e8;--paper:#fbfaf6;--tan:#d8c3a5;--clay:#af714e;--ink:#263029;--muted:#70796e;--line:rgba(38,55,43,.16)}
+        *{box-sizing:border-box}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(180deg,var(--oat) 0%,var(--mist) 100%);color:var(--ink);margin:0;overflow-x:hidden}
+        .display{font-family:'Playfair Display',serif;font-weight:500;letter-spacing:-.03em}
+        .label{font:11px 'DM Mono',monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--clay)}
+        .label:before{content:'✦';margin-right:8px}
+        a{text-decoration:none;color:inherit}
+
+        /* NAVBAR */
+        nav{background:var(--pine);color:#f6f3eb;padding:0 clamp(24px,6vw,72px);height:72px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.1)}
+        .nav-logo{font:600 24px 'Playfair Display',serif;letter-spacing:-.04em}
+        .nav-logo b{font-weight:500;color:#d4b58d}
+        .nav-links{display:flex;gap:26px;font-size:12.5px;color:#cfd8ca}
+        .nav-links a{transition:.2s}
+        .nav-links a:hover{color:#fff}
+        .logout-btn{font:12px 'DM Sans';color:#e3d4c4;background:transparent;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:9px 18px;transition:.25s}
+        .logout-btn:hover{background:rgba(255,255,255,.1);border-color:#fff;color:#fff}
+
+        /* WELCOME */
+        .welcome{position:relative;padding:70px clamp(24px,6vw,72px) 46px;overflow:hidden;background:var(--paper);border-bottom:1px solid var(--line)}
+        .welcome:before{content:'';position:absolute;width:420px;height:420px;right:-160px;top:-220px;border:1px solid var(--line);border-radius:50%;box-shadow:0 0 0 34px rgba(38,55,43,.025),0 0 0 68px rgba(38,55,43,.015)}
+        .welcome>*{position:relative;z-index:1}
+        .welcome h1{font-size:clamp(34px,4.4vw,54px);line-height:1.02;margin:14px 0 14px}
+        .welcome h1 em{color:var(--clay);font-style:normal}
+        .welcome p{max-width:480px;color:var(--muted);font-size:14px;line-height:1.75}
+
+        /* FEATURES — floating organic blobs, staggered, no boxes */
+        .features{padding:64px clamp(24px,6vw,72px) 30px;position:relative}
+        .section-label-row{margin-bottom:52px}
+        .section-label-row h2{font-size:clamp(26px,3vw,32px);margin:10px 0 0}
+
+        .float-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:26px}
+        .float-item{display:flex;flex-direction:column;align-items:flex-start;text-align:left;animation:bob 6s ease-in-out infinite;transition:transform .3s}
+        .float-item:nth-child(1){animation-delay:0s;transform:translateY(0)}
+        .float-item:nth-child(2){animation-delay:-2s;margin-top:38px}
+        .float-item:nth-child(3){animation-delay:-4s}
+        .float-item:nth-child(4){animation-delay:-1s;margin-top:38px}
+        .float-item:hover{transform:translateY(-10px) scale(1.03)}
+        @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+
+        .blob{width:88px;height:88px;display:grid;place-items:center;font-size:26px;color:#fff;box-shadow:0 22px 34px -14px rgba(38,55,43,.35);border-radius:63% 37% 54% 46% / 43% 47% 53% 57%;margin-bottom:20px;transition:.3s}
+        .float-item:hover .blob{border-radius:46% 54% 37% 63% / 57% 43% 57% 43%}
+        .blob.b1{background:linear-gradient(150deg,var(--sage),var(--moss))}
+        .blob.b2{background:linear-gradient(150deg,var(--forest),var(--pine))}
+        .blob.b3{background:linear-gradient(150deg,var(--clay),#8f5636)}
+        .blob.b4{background:linear-gradient(150deg,#3f4f3a,var(--forest))}
+
+        .float-item h3{font:22px 'Playfair Display';margin:0 0 8px}
+        .float-item p{margin:0;color:var(--muted);font-size:13px;line-height:1.6;max-width:220px}
+        .float-item .go{display:inline-flex;align-items:center;gap:7px;margin-top:16px;font-size:11px;font-weight:700;color:var(--forest);border-bottom:1px solid var(--forest);padding-bottom:2px}
+        .float-item:hover .go{color:var(--clay);border-color:var(--clay)}
+
+        /* OVERVIEW — floating stat blobs over forest */
+        .overview{background:var(--forest);color:#fff;padding:70px clamp(24px,6vw,72px) 80px;position:relative;overflow:hidden;margin-top:50px}
+        .overview:before{content:'';position:absolute;width:560px;height:560px;left:-260px;bottom:-320px;border:1px solid rgba(255,255,255,.09);border-radius:50%;box-shadow:0 0 0 46px rgba(255,255,255,.02),0 0 0 92px rgba(255,255,255,.015)}
+        .overview>*{position:relative;z-index:1}
+        .overview .label{color:#c4d1be}
+        .overview h2{font-size:clamp(26px,3vw,32px);margin:10px 0 8px}
+        .overview p.lead{color:#ccd4c7;font-size:13px;max-width:480px;margin:0 0 48px}
+
+        .orb-row{display:flex;gap:34px;flex-wrap:wrap;align-items:flex-start}
+        .orb{flex:1;min-width:230px;background:rgba(255,255,255,.06);backdrop-filter:blur(6px);border-radius:48% 52% 39% 61% / 55% 45% 55% 45%;padding:36px 30px;transition:.35s;animation:bob 7s ease-in-out infinite}
+        .orb:nth-child(1){animation-delay:-1s}
+        .orb:nth-child(2){animation-delay:-3s;margin-top:26px}
+        .orb:nth-child(3){animation-delay:-5s}
+        .orb:hover{border-radius:24px;background:rgba(255,255,255,.1);transform:translateY(-6px)}
+        .orb .ilabel{font-size:11px;color:#a9b7a3;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+        .orb .ilabel i{color:#d9b78f}
+        .orb .num{font:42px 'Playfair Display';margin:16px 0 6px;color:#fff}
+        .orb .sub{font-size:12px;color:#c1cabc;line-height:1.6}
+        .orb .go{display:inline-flex;align-items:center;gap:7px;margin-top:20px;font-size:11px;font-weight:700;color:#d9b78f;border-bottom:1px solid rgba(217,183,143,.5);padding-bottom:3px}
+        .orb .go:hover{color:#fff;border-color:#fff}
+
+        @media(max-width:1000px){.float-grid{grid-template-columns:repeat(2,1fr)}.float-item:nth-child(n){margin-top:0}}
+        @media(max-width:800px){.nav-links{display:none}nav{padding:0 20px}.welcome{padding:48px 20px 34px}.features{padding:48px 20px 10px}.float-grid{grid-template-columns:1fr}.overview{padding:48px 20px 56px}.orb-row{flex-direction:column}.orb:nth-child(n){margin-top:0}}
+    </style>
+
+</head>
+
+
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <div class="nav-logo">Cura<b>AI</b></div>
+    <div class="nav-links">
+        <a th:href="@{/exercise}">Exercise</a>
+        <a th:href="@{/nutrition}">Nutrition</a>
+        <a th:href="@{/prescription}">Prescriptions</a>
+        <a th:href="@{/chat}">AI Assistant</a>
+    </div>
+    <form th:action="@{/logout}" method="post" class="m-0">
+        <button type="submit" class="logout-btn cursor-pointer">Logout</button>
+    </form>
+</nav>
+
+<!-- WELCOME -->
+<section class="welcome">
+    <div class="label">Intelligent health companionship</div>
+    <h1 class="display">Welcome back to <em>CuraAI.</em></h1>
+    <p>Your personal health companion. Track your progress, understand your habits, and get intelligent guidance from one place.</p>
+</section>
+
+<!-- QUICK ACTIONS — floating blobs -->
+<section class="features">
+    <div class="section-label-row">
+        <div class="label">Four ways CuraAI supports you</div>
+        <h2 class="display">Health features</h2>
+    </div>
+
+    <div class="float-grid">
+
+        <a th:href="@{/exercise}" class="float-item">
+            <div class="blob b1"><i class="fa-solid fa-dumbbell"></i></div>
+            <h3>Exercise Analyzer</h3>
+            <p>Track workouts, analyze performance and monitor your fitness journey.</p>
+            <span class="go">Open <span>→</span></span>
+        </a>
+
+        <a th:href="@{/nutrition}" class="float-item">
+            <div class="blob b2"><i class="fa-solid fa-utensils"></i></div>
+            <h3>Nutrition Analyzer</h3>
+            <p>Analyze meals, understand nutrients and improve your eating habits.</p>
+            <span class="go">Analyze <span>→</span></span>
+        </a>
+
+        <a th:href="@{/prescription}" class="float-item">
+            <div class="blob b3"><i class="fa-solid fa-file-medical"></i></div>
+            <h3>Prescription Manager</h3>
+            <p>Manage prescriptions, reminders and medication information.</p>
+            <span class="go">Manage <span>→</span></span>
+        </a>
+
+        <a th:href="@{/chat}" class="float-item">
+            <div class="blob b4"><i class="fa-solid fa-robot"></i></div>
+            <h3>AI Health Assistant</h3>
+            <p>Ask health questions and receive personalized AI guidance.</p>
+            <span class="go">Chat <span>→</span></span>
+        </a>
+
+    </div>
+</section>
+
+<!-- HEALTH OVERVIEW — floating stat blobs -->
+<section class="overview">
+    <div class="label">Your daily story</div>
+    <h2 class="display">Your health overview</h2>
+    <p class="lead">Your personalized insights will appear here after you start using CuraAI features.</p>
+
+    <div class="orb-row">
+
+        <div class="orb">
+            <div class="ilabel"><i class="fa-solid fa-chart-simple"></i> Exercise Activity</div>
+            <div class="num"><span th:text="${weeklyMinutes ?: 0}">0</span><span style="font-size:17px;color:#c1cabc"> min</span></div>
+            <div class="sub"><span th:text="${activeDays ?: 0}">0</span>/7 active days this week</div>
+            <a th:href="@{/activity}" class="go">View activity <span>→</span></a>
+        </div>
+
+        <div class="orb">
+            <div class="ilabel"><i class="fa-solid fa-utensils"></i> Nutrition Activity</div>
+            <div class="num"><span th:text="${todayCalories ?: 0}">0</span><span style="font-size:17px;color:#c1cabc"> kcal</span></div>
+            <div class="sub">of <span th:text="${calorieGoal ?: 0}">0</span> kcal goal consumed today</div>
+            <a th:href="@{/nutrition-activity}" class="go">View nutrition <span>→</span></a>
+        </div>
+
+        <div class="orb">
+            <div class="ilabel"><i class="fa-solid fa-pills"></i> Medication Tracker</div>
+            <div class="sub" style="margin-top:14px">View saved prescriptions and mark today's doses as taken.</div>
+            <a th:href="@{/prescription}" class="go">View tracker <span>→</span></a>
+        </div>
+
+    </div>
+
+</section>
+
+</body>
+
+</html>

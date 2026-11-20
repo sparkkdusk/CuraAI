@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Exercise Analyzer · CuraAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root{--forest:#26372b;--pine:#18251d;--moss:#63755f;--sage:#aebda7;--mist:#e2e9dc;--oat:#f4f0e8;--paper:#fbfaf6;--tan:#d8c3a5;--clay:#af714e;--ink:#263029;--muted:#70796e;--line:rgba(38,55,43,.16)}
+        body { font-family: 'DM Sans', sans-serif; }
+        .pf { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacing: -.03em; }
+        .label{font:11px 'DM Mono',monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--clay)}
+        .label:before{content:'✦';margin-right:8px}
+        #overlay { transform: scaleX(-1); }
+        #webcam { transform: scaleX(-1); }
+        .gauge-ring { transition: stroke-dasharray 0.15s linear; }
+        .exbtn.active { background:var(--forest); color:#fff; border-color:var(--forest); box-shadow:0 8px 18px -8px rgba(38,55,43,.5); }
+        .exbtn { background:var(--paper); color:var(--muted); border:1px solid var(--sage); transition:.2s; }
+        .exbtn:hover:not(.active) { background:var(--mist); color:var(--pine); }
+        .dot { width:18px; height:18px; border-radius:5px; }
+        .logout-btn{font:12px 'DM Sans';color:#e3d4c4;background:transparent;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:8px 16px;transition:.25s}
+        .logout-btn:hover{background:rgba(255,255,255,.1);border-color:#fff;color:#fff}
+        .panel{background:linear-gradient(160deg,var(--paper),var(--mist));border:1px solid var(--line);border-radius:22px}
+        .hero-tex{position:relative;overflow:hidden}
+        .hero-tex:before{content:'';position:absolute;right:-60px;top:-70px;width:220px;height:220px;border:1px solid var(--line);border-radius:50%;box-shadow:0 0 0 22px rgba(38,55,43,.03),0 0 0 44px rgba(38,55,43,.02);pointer-events:none}
+        .icon-badge{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--forest),var(--clay));color:#fff;font-size:13px;flex-shrink:0;box-shadow:0 6px 14px -6px rgba(38,55,43,.5)}
+        .live-dot{width:7px;height:7px;border-radius:50%;background:#6fd98a;box-shadow:0 0 0 0 rgba(111,217,138,.6);animation:livepulse 1.8s infinite}
+        @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(111,217,138,.6)}70%{box-shadow:0 0 0 8px rgba(111,217,138,0)}100%{box-shadow:0 0 0 0 rgba(111,217,138,0)}}
+        .stat-tile{position:relative;overflow:hidden}
+        .stat-tile i{position:absolute;right:10px;top:10px;font-size:13px;opacity:.35}
+    </style>
+</head>
+
+<body style="background:linear-gradient(180deg,var(--oat) 0%,var(--mist) 100%);color:var(--ink)">
+
+<!-- NAVBAR -->
+<nav class="px-12 h-[72px] flex justify-between items-center sticky top-0 z-30" style="background:var(--pine);border-bottom:1px solid rgba(255,255,255,.1)">
+    <div class="pf text-2xl" style="color:#f6f3eb">Cura<span style="color:#d4b58d;font-weight:500">AI</span></div>
+    <div class="flex gap-7 text-[12.5px]" style="color:#cfd8ca">
+        <a th:href="@{/dashboard}" class="hover:text-white transition">Dashboard</a>
+        <a th:href="@{/exercise}" style="color:#d9b78f;font-weight:600">Exercise</a>
+        <a th:href="@{/activity}" class="hover:text-white transition">Activity</a>
+        <a th:href="@{/nutrition}" class="hover:text-white transition">Nutrition</a>
+        <a th:href="@{/prescription}" class="hover:text-white transition">Prescription</a>
+        <a th:href="@{/chat}" class="hover:text-white transition">AI Assistant</a>
+    </div>
+    <form th:action="@{/logout}" method="post" class="m-0">
+        <button type="submit" class="logout-btn cursor-pointer">Logout</button>
+    </form>
+</nav>
+
+<!-- Hidden form: th:action makes Thymeleaf add the CSRF token automatically -->
+<form id="logForm" th:action="@{/exercise/log}" method="post" class="hidden">
+    <input type="hidden" name="activityType">
+    <input type="hidden" name="durationMinutes">
+    <input type="hidden" name="caloriesBurned">
+    <input type="hidden" name="notes">
+</form>
+<div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl text-sm text-white shadow-lg"></div>
+
+<section class="px-12 pt-10 hero-tex">
+    <div class="label">Real-time form tracking</div>
+    <h1 class="text-3xl pf mt-2" style="color:var(--pine)">Exercise Analyzer</h1>
+    <p class="mt-2 max-w-2xl" style="color:var(--muted)">
+        Stand back so your shoulders, hips and joints are in frame. Pick an exercise, allow camera access,
+        and CuraAI will count reps and check your form in real time.
+    </p>
+</section>
+
+<section class="px-12 py-8">
+
+    <!-- Exercise picker -->
+    <div class="flex flex-wrap gap-3 mb-6" id="exercisePicker">
+        <button data-ex="squat" class="exbtn active px-4 py-2 rounded-xl text-sm font-medium"><i class="fa-solid fa-person-running mr-1.5"></i>Squat</button>
+        <button data-ex="curl" class="exbtn px-4 py-2 rounded-xl text-sm font-medium"><i class="fa-solid fa-dumbbell mr-1.5"></i>Bicep Curl</button>
+        <button data-ex="press" class="exbtn px-4 py-2 rounded-xl text-sm font-medium"><i class="fa-solid fa-arrow-up-from-bracket mr-1.5"></i>Shoulder Press</button>
+        <button data-ex="lateral_raise" class="exbtn px-4 py-2 rounded-xl text-sm font-medium"><i class="fa-solid fa-arrows-left-right mr-1.5"></i>Lateral Raise</button>
+    </div>
+
+    <div class="grid lg:grid-cols-[1fr_330px] gap-6">
+
+        <!-- Camera card -->
+        <div class="panel p-4 relative">
+            <div class="relative w-full rounded-2xl overflow-hidden bg-black" style="aspect-ratio:4/3">
+                <video id="webcam" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
+                <canvas id="overlay" class="absolute inset-0 w-full h-full"></canvas>
+
+                <div id="startOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-white">
+                    <i class="fa-solid fa-video text-3xl mb-3" style="color:var(--sage)"></i>
+                    <p class="mb-4 text-sm text-gray-200">Camera is off</p>
+                    <button id="startBtn" class="px-6 py-2.5 rounded-xl text-sm font-medium transition"
+                            style="background:var(--clay)"
+                            onmouseover="this.style.background='var(--forest)'"
+                            onmouseout="this.style.background='var(--clay)'">
+                        Start Camera
+                    </button>
+                </div>
+
+                <div id="loadingOverlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-white">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p class="text-sm text-gray-200">Loading pose model…</p>
+                </div>
+
+                <!-- On-camera badges -->
+                <div class="absolute top-3 left-3 flex items-center gap-2 px-3 py-1 rounded-lg bg-black/50 text-white text-xs font-medium">
+                    <span class="live-dot"></span>
+                    <span id="camExName">SQUAT</span>
+                </div>
+                <div class="absolute top-3 right-3 px-3 py-1 rounded-lg bg-black/50 text-white text-xs font-medium" id="camReps">Reps: 0</div>
+                <div class="absolute bottom-3 left-3 px-3 py-1.5 rounded-lg text-sm font-bold" id="camStatus" style="background:rgba(0,0,0,.5); color:#a8b0a2;">READY</div>
+            </div>
+
+            <div class="flex gap-3 mt-4">
+                <button id="resetBtn" class="px-4 py-2 rounded-xl text-sm font-medium transition" style="background:var(--sage);color:var(--pine)"
+                        onmouseover="this.style.background='var(--forest)';this.style.color='#fff'"
+                        onmouseout="this.style.background='var(--sage)';this.style.color='var(--pine)'">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+                </button>
+                <button id="stopBtn" class="px-4 py-2 rounded-xl text-sm font-medium transition" style="background:var(--paper);border:1px solid var(--sage);color:var(--muted)"
+                        onmouseover="this.style.background='var(--forest)';this.style.color='#fff';this.style.borderColor='var(--forest)'"
+                        onmouseout="this.style.background='var(--paper)';this.style.color='var(--muted)';this.style.borderColor='var(--sage)'">
+                    Stop Camera
+                </button>
+                <button id="saveBtn" class="px-4 py-2 rounded-xl text-sm font-medium transition text-white" style="background:var(--clay)">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i> Save Workout
+                </button>
+                <div class="ml-auto flex items-center gap-2 text-sm" style="color:var(--muted)">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span id="tipText">Chest up</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard panel -->
+        <div class="panel p-6 flex flex-col gap-5">
+
+            <div class="flex items-center gap-3">
+                <div class="icon-badge"><i class="fa-solid fa-chart-line"></i></div>
+                <div>
+                    <h3 class="text-sm" style="color:var(--muted)">Exercise</h3>
+                    <p class="text-xl pf" id="panelExName" style="color:var(--pine)">Squat</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="rounded-2xl p-4 text-center stat-tile" style="background:var(--sage)">
+                    <i class="fa-solid fa-repeat" style="color:var(--pine)"></i>
+                    <p class="text-xs" style="color:var(--pine)">REPS</p>
+                    <p class="text-3xl font-bold" id="repCount" style="color:var(--pine)">0</p>
+                </div>
+                <div class="rounded-2xl p-4 text-center stat-tile" style="background:var(--sage)">
+                    <i class="fa-solid fa-stopwatch" style="color:var(--pine)"></i>
+                    <p class="text-xs" style="color:var(--pine)">TIME</p>
+                    <p class="text-3xl font-bold" id="timeCount" style="color:var(--pine)">00:00</p>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-xs mb-2" style="color:var(--muted)">JOINT ANGLE</p>
+                <div class="flex gap-4 justify-center">
+                    <svg width="90" height="60" viewBox="0 0 90 60">
+                        <defs>
+                            <linearGradient id="gaugeGradL" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0%" stop-color="#af714e"/>
+                                <stop offset="100%" stop-color="#26372b"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M10,55 A35,35 0 0 1 80,55" stroke="#aebda7" stroke-width="8" fill="none"/>
+                        <path id="gaugeL" class="gauge-ring" d="M10,55 A35,35 0 0 1 80,55" stroke="url(#gaugeGradL)" stroke-width="8" fill="none" stroke-dasharray="0 110" stroke-linecap="round"/>
+                        <text x="45" y="40" text-anchor="middle" font-size="14" fill="#18251d" id="angleLText">0°</text>
+                        <text x="45" y="55" text-anchor="middle" font-size="9" fill="#70796e">LEFT</text>
+                    </svg>
+                    <svg width="90" height="60" viewBox="0 0 90 60">
+                        <defs>
+                            <linearGradient id="gaugeGradR" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0%" stop-color="#af714e"/>
+                                <stop offset="100%" stop-color="#26372b"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M10,55 A35,35 0 0 1 80,55" stroke="#aebda7" stroke-width="8" fill="none"/>
+                        <path id="gaugeR" class="gauge-ring" d="M10,55 A35,35 0 0 1 80,55" stroke="url(#gaugeGradR)" stroke-width="8" fill="none" stroke-dasharray="0 110" stroke-linecap="round"/>
+                        <text x="45" y="40" text-anchor="middle" font-size="14" fill="#18251d" id="angleRText">0°</text>
+                        <text x="45" y="55" text-anchor="middle" font-size="9" fill="#70796e">RIGHT</text>
+                    </svg>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-xs mb-1" style="color:var(--muted)">LAST REP QUALITY</p>
+                <div class="w-full h-3 rounded-full overflow-hidden" style="background:var(--mist)">
+                    <div id="qualityBar" class="h-full" style="width:0%;background:linear-gradient(90deg,var(--sage),var(--forest))"></div>
+                </div>
+                <p class="text-right text-xs mt-1" style="color:var(--muted)"><span id="qualityPct">0</span>%</p>
+            </div>
+
+            <div>
+                <p class="text-xs mb-1" style="color:var(--muted)">FORM</p>
+                <p class="text-lg font-bold" id="formBadge" style="color:#70796e">READY</p>
+            </div>
+
+            <div>
+                <p class="text-xs mb-2" style="color:var(--muted)">HISTORY</p>
+                <div class="flex gap-1.5 flex-wrap" id="historyDots"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<script type="module">
+
+    import * as vision from "/js/vision_bundle.mjs";
+
+    const PoseLandmarker = vision.PoseLandmarker;
+    const FilesetResolver = vision.FilesetResolver;
+
+    /* ───────────────────────── Landmark indices ───────────────────────── */
+    const LM = {
+        LEFT_SHOULDER:11, RIGHT_SHOULDER:12, LEFT_ELBOW:13, RIGHT_ELBOW:14,
+        LEFT_WRIST:15, RIGHT_WRIST:16, LEFT_HIP:23, RIGHT_HIP:24,
+        LEFT_KNEE:25, RIGHT_KNEE:26, LEFT_ANKLE:27, RIGHT_ANKLE:28,
+    };
+    const CONNECTIONS = [
+        [11,12],
+        [11,13],
+        [13,15],
+        [12,14],
+        [14,16],
+        [11,23],
+        [12,24],
+        [23,24],
+        [23,25],
+        [24,26],
+        [25,27],
+        [26,28]
+    ];
+    const VIS_THRESHOLD = 0.55, STALE_FRAMES = 10, SIDE_AGREE_TOL = 35;
+
+    /* ───────────────────────── Exercise definitions ───────────────────────── */
+    const EX = {
+        squat: { name:"Squat", color:"#af714e", L:["LEFT_HIP","LEFT_KNEE","LEFT_ANKLE"], R:["RIGHT_HIP","RIGHT_KNEE","RIGHT_ANKLE"],
+            down:100, up:160, hyst:8, min_range:40, min_velocity:6, dwell:2, good_thr:110, press:false, cooldown:0.6,
+            good:"Good squat!", warn:"Go deeper!", tips:["Chest up","Knees over toes","Heels down","Core tight"] },
+        curl: { name:"Bicep Curl", color:"#3f7a8c", L:["LEFT_SHOULDER","LEFT_ELBOW","LEFT_WRIST"], R:["RIGHT_SHOULDER","RIGHT_ELBOW","RIGHT_WRIST"],
+            down:55, up:150, hyst:8, min_range:65, min_velocity:8, dwell:2, good_thr:65, press:false, cooldown:0.5,
+            good:"Nice curl!", warn:"Curl higher!", tips:["Elbows fixed","Full range","Slow descent","Squeeze top"] },
+        press: { name:"Shoulder Press", color:"#3f6b4c", L:["LEFT_SHOULDER","LEFT_ELBOW","LEFT_WRIST"], R:["RIGHT_SHOULDER","RIGHT_ELBOW","RIGHT_WRIST"],
+            down:100, up:160, hyst:8, min_range:45, min_velocity:6, dwell:2, good_thr:155, press:true, cooldown:0.6,
+            good:"Great press!", warn:"Extend fully overhead!", tips:["Core braced","Press straight up","Full extension","Control down"] },
+        lateral_raise: { name:"Lateral Raise", color:"#a14b6b", L:["LEFT_HIP","LEFT_SHOULDER","LEFT_ELBOW"], R:["RIGHT_HIP","RIGHT_SHOULDER","RIGHT_ELBOW"],
+            down:28, up:68, hyst:7, min_range:40, min_velocity:5, dwell:2, good_thr:78, press:true, cooldown:0.5,
+            good:"Nice raise!", warn:"Raise to shoulder height!", tips:["Slight elbow bend","Lead with elbows","Stop at shoulder height","Control descent"] },
+    };
+
+    /* ───────────────────────── Math helpers ───────────────────────── */
+    function angle(a,b,c){
+        const ba=[a[0]-b[0],a[1]-b[1]], bc=[c[0]-b[0],c[1]-b[1]];
+        const dot = ba[0]*bc[0]+ba[1]*bc[1];
+        const mag = Math.hypot(...ba)*Math.hypot(...bc)+1e-6;
+        return Math.acos(Math.min(1,Math.max(-1,dot/mag))) * 180/Math.PI;
+    }
+    function median(arr){ if(arr.length<3) return arr.reduce((a,b)=>a+b,0)/(arr.length||1);
+        const s=[...arr].sort((a,b)=>a-b); return s[Math.floor(s.length/2)]; }
+
+    /* ───────────────────────── Rep counter (ported from Python AccurateCounter) ───────────────────────── */
+    class Counter {
+        constructor(cfg){ this.cfg=cfg; this.reset(); }
+        reset(){
+            this.state="up"; this.peakUp=0; this.valley=999; this.zenith=-999;
+            this.lastRep=0; this.reps=0; this.stateT=performance.now()/1000;
+            this.dwell=0; this.motionSeen=false; this.ema1=null; this.ema2=null;
+            this.lastAngle=null; this.lastT=null; this.velBuf=[];
+            this.velocity=0; this.moving=false; this.quality=0;
+        }
+        smooth(raw){
+            const a1=0.55, a2=0.45;
+            if(this.ema1===null){ this.ema1=this.ema2=raw; }
+            else { this.ema1 = a1*raw + (1-a1)*this.ema1; this.ema2 = a2*this.ema1 + (1-a2)*this.ema2; }
+            return this.ema2;
+        }
+        tickVelocity(a, now){
+            if(this.lastAngle!==null){
+                const dt = Math.max(now-this.lastT, 1e-3);
+                const inst = Math.abs(a-this.lastAngle)/dt;
+                this.velBuf.push(inst); if(this.velBuf.length>10) this.velBuf.shift();
+            }
+            this.lastAngle=a; this.lastT=now;
+            this.velocity = this.velBuf.length ? this.velBuf.reduce((x,y)=>x+y,0)/this.velBuf.length : 0;
+            this.moving = this.velocity >= this.cfg.min_velocity;
+            if(this.moving) this.motionSeen=true;
+        }
+        calcQuality(hit){
+            const c=this.cfg;
+            if(c.press){ const perfect=c.up, worst=c.down; return Math.round(Math.min(100,Math.max(0,(hit-worst)/Math.max(perfect-worst,1)*100))); }
+            const perfect=c.down, worst=c.up; return Math.round(Math.min(100,Math.max(0,(worst-hit)/Math.max(worst-perfect,1)*100)));
+        }
+        enter(s){ this.state=s; this.stateT=performance.now()/1000; this.dwell=0; }
+        resetRepVars(){ this.enter("up"); this.valley=999; this.zenith=-999; this.motionSeen=false; }
+        update(al, ar, visL, visR){
+            const c=this.cfg;
+            const angles=[]; if(visL) angles.push(al); if(visR) angles.push(ar);
+            if(!angles.length) return null;
+            if(visL && visR && Math.abs(al-ar) > SIDE_AGREE_TOL) return null;
+            const raw = angles.reduce((a,b)=>a+b,0)/angles.length;
+            const a = this.smooth(raw);
+            const now = performance.now()/1000;
+            this.tickVelocity(a, now);
+
+            if((this.state==="going_down"||this.state==="going_up") && now-this.stateT>6){ this.resetRepVars(); return null; }
+
+            if(this.state==="going_down"||this.state==="down") this.valley=Math.min(this.valley,a);
+            else if(this.state==="going_up") this.zenith=Math.max(this.zenith,a);
+
+            if(this.state==="up"){
+                this.peakUp=Math.max(this.peakUp,a);
+                if(a < c.down - c.hyst){ this.dwell++; if(this.dwell>=c.dwell){ this.enter("going_down"); this.valley=a; this.zenith=-999; } }
+                else this.dwell=0;
+            } else if(this.state==="going_down"){
+                if(a < c.down) this.enter("down");
+                else if(a > c.down + c.hyst) this.resetRepVars();
+            } else if(this.state==="down"){
+                if(a > c.up - c.hyst){ this.dwell++; if(this.dwell>=c.dwell) this.enter("going_up"); }
+                else this.dwell=0;
+            } else if(this.state==="going_up"){
+                if(a > c.up){
+                    const range = this.peakUp - this.valley;
+                    if(range >= c.min_range && this.motionSeen && now-this.lastRep >= c.cooldown){
+                        this.reps++; this.lastRep=now;
+                        const hit = c.press ? Math.max(this.zenith,a) : this.valley;
+                        this.quality = this.calcQuality(hit);
+                        this.resetRepVars(); this.peakUp=a;
+                        return hit;
+                    } else { this.resetRepVars(); }
+                } else if(a < c.up - c.hyst*2) this.enter("down");
+            }
+            return null;
+        }
+    }
+
+    /* ───────────────────────── App wiring ───────────────────────── */
+    const video = document.getElementById("webcam");
+    const canvas = document.getElementById("overlay");
+    const ctx = canvas.getContext("2d");
+
+    let landmarker=null, running=false, eid="squat";
+    let counter = new Counter(EX[eid]);
+    let bufL=[], bufR=[], missL=0, missR=0;
+    let history=[], t0=0, tipIdx=0, tipT=0, rafId=null;
+    let qualitySum=0, qualityCount=0, elapsedSec=0;
+    const MET = { squat:5, curl:3.5, press:3.5, lateral_raise:3 };  // rough calorie estimate (70 kg person)
+    let synth = window.speechSynthesis;
+    let lastSpoken = "";
+
+    function speak(text){
+        if(!synth || text===lastSpoken) return;
+        synth.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 1.05;
+        synth.speak(u);
+        lastSpoken = text;
+    }
+
+    function visible(lms, names, exDef){
+        return names.every(n => lms[LM[n]] && lms[LM[n]].visibility >= VIS_THRESHOLD);
+    }
+
+    function switchExercise(newEid){
+        eid = newEid;
+        counter = new Counter(EX[eid]);
+        bufL=[]; bufR=[]; missL=0; missR=0; history=[];
+        qualitySum=0; qualityCount=0; elapsedSec=0;
+        t0 = performance.now(); tipIdx=0;
+        document.getElementById("panelExName").textContent = EX[eid].name;
+        document.getElementById("camExName").textContent = EX[eid].name.toUpperCase();
+        document.querySelectorAll(".exbtn").forEach(b=>b.classList.toggle("active", b.dataset.ex===eid));
+        document.getElementById("formBadge").textContent = "READY";
+        document.getElementById("formBadge").style.color = "#70796e";
+        renderHistory();
+        lastSpoken = "";
+    }
+
+    document.getElementById("exercisePicker").addEventListener("click", e=>{
+        const btn = e.target.closest(".exbtn"); if(!btn) return;
+        if(btn.dataset.ex !== eid && counter.reps > 0 &&
+            !confirm("You have unsaved reps. Switch exercise and discard them?")) return;
+        switchExercise(btn.dataset.ex);
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", ()=>{
+        counter.reset(); history=[]; t0=performance.now();
+        qualitySum=0; qualityCount=0; elapsedSec=0;
+        bufL=[]; bufR=[]; missL=0; missR=0;
+        renderHistory();
+
+        document.getElementById("camReps").textContent = "Reps: 0";
+        document.getElementById("repCount").textContent = "0";
+        document.getElementById("timeCount").textContent = "00:00";
+        document.getElementById("qualityBar").style.width = "0%";
+        document.getElementById("qualityPct").textContent = "0";
+        document.getElementById("formBadge").textContent = "READY";
+        document.getElementById("formBadge").style.color = "#70796e";
+        document.getElementById("camStatus").textContent = "READY";
+        document.getElementById("camStatus").style.color = "#a8b0a2";
+        lastSpoken = "";
+    });
+
+    document.getElementById("stopBtn").addEventListener("click", stopCamera);
+
+    async function initModel(){
+        const vision = await FilesetResolver.forVisionTasks("/wasm");
+        landmarker = await PoseLandmarker.createFromOptions(vision, {
+            baseOptions: { modelAssetPath: "/models/pose_landmarker_lite.task" },
+            runningMode: "VIDEO",
+            numPoses: 1,
+            minPoseDetectionConfidence: 0.6,
+            minPosePresenceConfidence: 0.6,
+            minTrackingConfidence: 0.6,
+        });
+    }
+
+    async function startCamera(){
+        document.getElementById("startOverlay").classList.add("hidden");
+        document.getElementById("loadingOverlay").classList.remove("hidden");
+        try{
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { width:640, height:480 }, audio:false });
+            video.srcObject = stream;
+            await video.play();
+            if(!landmarker) await initModel();
+            document.getElementById("loadingOverlay").classList.add("hidden");
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            running = true; t0 = performance.now(); tipT = performance.now();
+            speak(`${EX[eid].name} selected. Stand in frame to begin.`);
+            loop();
+        } catch(err){
+            document.getElementById("loadingOverlay").classList.add("hidden");
+            document.getElementById("startOverlay").classList.remove("hidden");
+            alert("Couldn't access the camera: " + err.message + "\nCheck your browser's camera permission for this site.");
+        }
+    }
+
+    function stopCamera(){
+        running = false;
+        if(rafId) cancelAnimationFrame(rafId);
+        const stream = video.srcObject;
+        if(stream) stream.getTracks().forEach(t=>t.stop());
+        video.srcObject = null;
+        document.getElementById("startOverlay").classList.remove("hidden");
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+
+    document.getElementById("startBtn").addEventListener("click", startCamera);
+
+    function drawSkeleton(lms, color){
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,255,255,0.6)";
+        ctx.lineWidth = 2;
+        for(const [a,b] of CONNECTIONS){
+            const la=lms[a], lb=lms[b];
+            if(!la || !lb || la.visibility<VIS_THRESHOLD || lb.visibility<VIS_THRESHOLD) continue;
+            ctx.beginPath();
+            ctx.moveTo(la.x*canvas.width, la.y*canvas.height);
+            ctx.lineTo(lb.x*canvas.width, lb.y*canvas.height);
+            ctx.stroke();
+        }
+        ctx.fillStyle = color;
+        for(const idx of Object.values(LM)){
+            const l = lms[idx]; if(!l || l.visibility<VIS_THRESHOLD) continue;
+            ctx.beginPath();
+            ctx.arc(l.x*canvas.width, l.y*canvas.height, 5, 0, Math.PI*2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function renderHistory(){
+        const wrap = document.getElementById("historyDots");
+        wrap.innerHTML = "";
+        history.slice(-12).forEach(r=>{
+            const d = document.createElement("div");
+            d.className = "dot";
+            d.style.background = r==="g" ? "#3f6b4c" : "#b3452f";
+            wrap.appendChild(d);
+        });
+    }
+
+    function setGauge(pathId, textId, angleVal, def){
+        const rng = Math.max(def.up - def.down, 1);
+        const pct = Math.min(Math.max((angleVal-def.down)/rng, 0), 1);
+        document.getElementById(pathId).setAttribute("stroke-dasharray", `${pct*110} 110`);
+        document.getElementById(textId).textContent = Math.round(angleVal) + "°";
+    }
+
+    function loop(){
+        if(!running) return;
+        const def = EX[eid];
+        const now = performance.now();
+        const result = landmarker.detectForVideo(video, now);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        let al=0, ar=0, visL=false, visR=false;
+
+        if(result.landmarks && result.landmarks.length){
+            const lms = result.landmarks[0];
+            drawSkeleton(lms, def.color);
+
+            visL = visible(lms, def.L);
+            if(visL){
+                missL=0;
+                const a = angle(
+                    [lms[LM[def.L[0]]].x, lms[LM[def.L[0]]].y],
+                    [lms[LM[def.L[1]]].x, lms[LM[def.L[1]]].y],
+                    [lms[LM[def.L[2]]].x, lms[LM[def.L[2]]].y]
+                );
+                bufL.push(a); if(bufL.length>7) bufL.shift();
+                al = median(bufL);
+            } else { missL++; if(missL>STALE_FRAMES) bufL=[]; }
+
+            visR = visible(lms, def.R);
+            if(visR){
+                missR=0;
+                const a = angle(
+                    [lms[LM[def.R[0]]].x, lms[LM[def.R[0]]].y],
+                    [lms[LM[def.R[1]]].x, lms[LM[def.R[1]]].y],
+                    [lms[LM[def.R[2]]].x, lms[LM[def.R[2]]].y]
+                );
+                bufR.push(a); if(bufR.length>7) bufR.shift();
+                ar = median(bufR);
+            } else { missR++; if(missR>STALE_FRAMES) bufR=[]; }
+
+            const hit = counter.update(al, ar, visL, visR);
+            if(hit !== null){
+                const good = def.press ? (hit >= def.good_thr-10) : (hit <= def.good_thr+10);
+                const badge = document.getElementById("formBadge");
+                const camStatus = document.getElementById("camStatus");
+                badge.textContent = good ? "GOOD" : "WARN";
+                badge.style.color = good ? "#3f6b4c" : "#b3452f";
+                camStatus.textContent = good ? "GOOD" : "WARN";
+                camStatus.style.color = good ? "#7fd39a" : "#e8917a";
+                history.push(good ? "g" : "w");
+                qualitySum += counter.quality; qualityCount++;
+                renderHistory();
+                speak(good ? def.good : def.warn);
+            }
+        }
+
+        document.getElementById("camReps").textContent = "Reps: " + counter.reps;
+        document.getElementById("repCount").textContent = counter.reps;
+        setGauge("gaugeL","angleLText", al, def);
+        setGauge("gaugeR","angleRText", ar, def);
+        document.getElementById("qualityBar").style.width = counter.quality + "%";
+        document.getElementById("qualityPct").textContent = counter.quality;
+
+        const elapsed = Math.floor((performance.now()-t0)/1000);
+        elapsedSec = elapsed;
+        const m = String(Math.floor(elapsed/60)).padStart(2,"0");
+        const s = String(elapsed%60).padStart(2,"0");
+        document.getElementById("timeCount").textContent = `${m}:${s}`;
+
+        if(performance.now()-tipT > 8000){
+            tipIdx = (tipIdx+1) % def.tips.length;
+            tipT = performance.now();
+        }
+        document.getElementById("tipText").textContent = def.tips[tipIdx];
+
+        rafId = requestAnimationFrame(loop);
+    }
+
+    /* ───────────────────────── Save workout ───────────────────────── */
+    function toast(msg, ok){
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.style.background = ok ? "#26372b" : "#b3452f";
+        t.classList.remove("hidden");
+        setTimeout(()=>t.classList.add("hidden"), 3500);
+    }
+
+    async function saveWorkout(){
+        if(counter.reps < 1){ toast("Do at least one rep before saving.", false); return; }
+        const btn = document.getElementById("saveBtn");
+        const minutes = Math.max(1, Math.round(elapsedSec/60));
+        const calories = Math.round((MET[eid] || 3.5) * 70 * minutes / 60);
+        const avgQ = qualityCount ? Math.round(qualitySum/qualityCount) : 0;
+
+        const form = document.getElementById("logForm");
+        form.elements["activityType"].value = EX[eid].name;
+        form.elements["durationMinutes"].value = minutes;
+        form.elements["caloriesBurned"].value = calories;
+        form.elements["notes"].value = `${counter.reps} reps, average form quality ${avgQ}%`;
+
+        btn.disabled = true;
+        try{
+            const res = await fetch(form.action, {
+                method: "POST",
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                body: new URLSearchParams(new FormData(form)),   // includes the hidden _csrf field
+                credentials: "same-origin"
+            });
+            if(!res.ok || res.redirected) throw new Error("Server returned " + res.status);
+            toast(`Saved: ${EX[eid].name}, ${counter.reps} reps, ${minutes} min`, true);
+            document.getElementById("resetBtn").click();
+        }catch(err){
+            toast("Couldn't save workout: " + err.message, false);
+        }finally{
+            btn.disabled = false;
+        }
+    }
+    document.getElementById("saveBtn").addEventListener("click", saveWorkout);
+
+    switchExercise("squat");
+</script>
+
+</body>
+</html>

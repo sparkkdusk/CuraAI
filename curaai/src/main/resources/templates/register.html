@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CuraAI | Get Started</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root{--forest:#26372b;--pine:#18251d;--moss:#63755f;--sage:#aebda7;--mist:#e2e9dc;--oat:#f4f0e8;--paper:#fbfaf6;--tan:#d8c3a5;--clay:#af714e;--ink:#263029;--muted:#70796e;--line:rgba(38,55,43,.16)}
+        body{font-family:'DM Sans',sans-serif}
+        .display{font-family:'Playfair Display',serif;font-weight:500;letter-spacing:-.03em}
+        .label{font:11px 'DM Mono',monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--clay)}
+        .label:before{content:'✦';margin-right:8px}
+        input::placeholder{color:var(--muted)}
+        .brand-grid{position:absolute;inset:0;opacity:.36;background-image:linear-gradient(rgba(255,255,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.09) 1px,transparent 1px);background-size:56px 56px;mask-image:linear-gradient(to bottom,black,transparent 85%)}
+        .brand-ring{position:absolute;width:480px;height:480px;right:-190px;top:-90px;border:1px solid rgba(225,235,218,.35);border-radius:50%;box-shadow:0 0 0 44px rgba(225,235,218,.05),0 0 0 88px rgba(225,235,218,.035)}
+    </style>
+</head>
+
+<body class="min-h-screen flex" style="background:linear-gradient(180deg,var(--oat) 0%,var(--mist) 100%)">
+
+<div class="hidden lg:flex relative overflow-hidden items-end" style="width:44%;background:var(--pine)">
+    <div class="brand-grid"></div>
+    <div class="brand-ring"></div>
+    <div class="relative z-10 p-14 pb-16" style="color:#f9f6ee">
+        <a class="font-semibold" style="font-family:'Playfair Display',serif;font-size:26px;letter-spacing:-.03em" href="#">Cura<b style="color:#d4b58d;font-weight:500">AI</b></a>
+        <h2 class="display mt-8" style="font-size:40px;line-height:1.05;max-width:360px">Health care that<br><em style="color:#d9b78f;font-style:normal">comes back to you.</em></h2>
+        <p class="mt-5" style="max-width:320px;color:#ccd4c7;font-size:14px;line-height:1.75">CuraAI gathers the rhythms of your life and turns them into clear, gentle next steps — one account, one calmer view of your wellbeing.</p>
+        <div class="mt-10 pt-8" style="border-top:1px solid rgba(255,255,255,.15);display:flex;gap:32px">
+            <div><strong class="display block" style="font-size:22px">One view</strong><span style="font-size:11px;color:#b9c4b4">of your wellbeing</span></div>
+            <div><strong class="display block" style="font-size:22px">More ease</strong><span style="font-size:11px;color:#b9c4b4">in everyday choices</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="flex-1 flex items-center justify-center p-8">
+    <div class="w-[440px] rounded-3xl shadow-xl p-10" style="background:var(--paper);border:1px solid var(--line)">
+
+        <div class="label">Join CuraAI</div>
+
+        <h1 class="text-3xl mt-3 display" style="color:var(--pine)">
+            Create your account
+        </h1>
+
+        <p class="mt-2 mb-8" style="color:var(--muted)">
+            Start tracking your health intelligently
+        </p>
+
+        <p th:if="${error}" th:text="${error}" class="text-sm mb-4" style="color:#b3452f"></p>
+
+        <form th:action="@{/auth/register}" action="/auth/register" method="post">
+
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <input
+                    name="fullName"
+                    class="w-full p-3 mb-4 rounded-xl border outline-none"
+                    style="background:var(--oat);border-color:var(--line);color:var(--ink)"
+                    placeholder="Full Name"
+                    required>
+
+            <input
+                    name="email"
+                    type="email"
+                    class="w-full p-3 mb-4 rounded-xl border outline-none"
+                    style="background:var(--oat);border-color:var(--line);color:var(--ink)"
+                    placeholder="Email"
+                    required>
+
+            <input
+                    name="password"
+                    class="w-full p-3 mb-6 rounded-xl border outline-none"
+                    style="background:var(--oat);border-color:var(--line);color:var(--ink)"
+                    placeholder="Password"
+                    type="password"
+                    required>
+
+            <button
+                    type="submit"
+                    class="w-full py-3 rounded-xl font-semibold transition"
+                    style="background:var(--forest);color:#f9f6ee"
+                    onmouseover="this.style.background='var(--clay)'"
+                    onmouseout="this.style.background='var(--forest)'">
+                Get Started
+            </button>
+
+        </form>
+
+        <p class="text-center mt-6 text-sm" style="color:var(--muted)">
+            Already have an account?
+            <a th:href="@{/auth/login}" href="/auth/login" class="font-semibold" style="color:var(--clay)">
+                Sign In
+            </a>
+        </p>
+
+    </div>
+</div>
+
+</body>
+</html>

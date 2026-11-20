@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CuraAI – Nutrition Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root{--forest:#26372b;--pine:#18251d;--moss:#63755f;--sage:#aebda7;--mist:#e2e9dc;--oat:#f4f0e8;--paper:#fbfaf6;--tan:#d8c3a5;--clay:#af714e;--ink:#263029;--muted:#70796e;--line:rgba(38,55,43,.16)}
+        * { box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background:linear-gradient(180deg,var(--oat) 0%,var(--mist) 100%); color:var(--ink); margin:0; }
+        .pf { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacing: -.03em; }
+        .label{font:11px 'DM Mono',monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--clay)}
+        .label:before{content:'✦';margin-right:8px}
+
+        /* NAVBAR */
+        nav{background:var(--pine);border-bottom:1px solid rgba(255,255,255,.1)}
+        .logout-btn{font:12px 'DM Sans';color:#e3d4c4;background:transparent;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:8px 16px;transition:.25s;cursor:pointer}
+        .logout-btn:hover{background:rgba(255,255,255,.1);border-color:#fff;color:#fff}
+
+        /* HERO — matches prescription.html / exercise.html */
+        .hero{padding:56px clamp(20px,6vw,72px) 30px}
+        .hero h1{font-size:clamp(30px,3.6vw,44px);color:var(--pine);margin-top:12px}
+        .hero p{max-width:460px;color:var(--muted);font-size:14px;line-height:1.7;margin-top:12px}
+
+        /* STAGE */
+        .stage{max-width:1080px;margin:10px auto 70px;padding:0 clamp(16px,4vw,32px);position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+        @media(max-width:880px){.stage{grid-template-columns:1fr}}
+
+        .panel{background:var(--paper);border-radius:32px;box-shadow:0 24px 54px -22px rgba(38,55,43,.32);border:1px solid rgba(255,255,255,.6);padding:30px}
+
+        .logo-badge{background:linear-gradient(135deg,var(--forest),var(--clay));color:white;width:52px;height:52px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 10px 20px -6px rgba(38,55,43,.4)}
+
+        .upload-zone{border:2px dashed var(--sage);background:var(--mist);border-radius:26px;padding:44px 20px;transition:all .2s;cursor:pointer;position:relative;overflow:hidden}
+        .upload-zone:hover{border-color:var(--clay);background:var(--mist)}
+        .upload-zone.dragover{border-color:var(--clay);background:#ecdfc9}
+
+        .btn-primary{background:linear-gradient(135deg,var(--forest),#33493c);color:white;border:none;padding:16px 24px;border-radius:999px;font-weight:600;font-size:.95rem;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;transition:all .2s;cursor:pointer;box-shadow:0 12px 26px -12px rgba(38,55,43,.55)}
+        .btn-primary:hover{background:linear-gradient(135deg,var(--clay),#c98a5f);transform:translateY(-2px);box-shadow:0 16px 30px -12px rgba(175,113,78,.5)}
+
+        .health-ring{position:absolute;top:16px;right:16px;width:60px;height:60px;background:rgba(24,37,29,.45);backdrop-filter:blur(4px);border-radius:30px;display:flex;align-items:center;justify-content:center}
+        .health-ring svg{transform:rotate(-90deg);width:56px;height:56px}
+        .ring-bg{fill:none;stroke:rgba(255,255,255,.25);stroke-width:5}
+        .ring-fill{fill:none;stroke:#8be3a8;stroke-width:5;stroke-linecap:round;transition:stroke-dasharray .8s ease}
+
+        .macro-pill{background:var(--mist);border-radius:20px;padding:14px 16px;display:flex;align-items:center;gap:12px;transition:.15s;border:1px solid transparent}
+        .macro-pill:hover{border-color:var(--tan);transform:translateY(-2px)}
+        .macro-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+        .insight-card{background:linear-gradient(135deg,var(--mist),var(--sage));border-radius:24px;padding:22px;border:1px solid var(--sage)}
+
+        .food-overlay{background:linear-gradient(0deg,rgba(24,37,29,.75) 0%,rgba(0,0,0,0) 65%);position:absolute;inset:0;border-radius:24px}
+        .food-img{width:100%;max-height:230px;object-fit:cover;border-radius:24px;display:block}
+        .preview-container{position:relative;border-radius:24px;overflow:hidden;background:#ecdfc9}
+        .preview-container img{width:100%;max-height:200px;object-fit:cover;display:block}
+
+        .tag-pill{background:rgba(255,255,255,.22);backdrop-filter:blur(4px);padding:4px 14px;border-radius:40px;color:white;font-size:.7rem;letter-spacing:.3px;display:inline-flex;align-items:center;gap:6px}
+
+        .cal-hero{background:linear-gradient(135deg,var(--forest),var(--clay));border-radius:24px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 16px 34px -16px rgba(38,55,43,.5)}
+
+        .remove-btn{background:rgba(24,37,29,.55);backdrop-filter:blur(4px);border:none;color:white;width:32px;height:32px;border-radius:40px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:.15s;position:absolute;top:12px;right:12px}
+        .remove-btn:hover{background:rgba(24,37,29,.8)}
+        .hidden{display:none!important}
+
+        .empty-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:50px 10px 20px}
+        .empty-icon{width:74px;height:74px;border-radius:50%;background:linear-gradient(135deg,var(--mist),var(--sage));display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--forest);margin-bottom:18px}
+
+        @media(max-width:640px){.panel{padding:22px}}
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="px-12 h-[72px] flex justify-between items-center sticky top-0 z-30">
+    <div class="pf text-2xl" style="color:#f6f3eb">Cura<span style="color:#d4b58d;font-weight:500">AI</span></div>
+    <div class="flex gap-7 text-[12.5px]" style="color:#cfd8ca">
+        <a th:href="@{/dashboard}" class="hover:text-white transition">Dashboard</a>
+        <a th:href="@{/exercise}" class="hover:text-white transition">Exercise</a>
+        <a th:href="@{/nutrition}" style="color:#d9b78f;font-weight:600">Nutrition</a>
+        <a th:href="@{/prescription}" class="hover:text-white transition">Prescription</a>
+        <a th:href="@{/chat}" class="hover:text-white transition">AI Assistant</a>
+    </div>
+    <form th:action="@{/logout}" method="post" class="m-0">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="label">Snap it, know it</div>
+    <h1 class="pf">Nutrition Analyzer</h1>
+    <p>Upload a photo of any meal and CuraAI breaks down calories, macros and gives you a quick nutritionist-style read on it.</p>
+</section>
+
+<!-- STAGE — two panels -->
+<div class="stage">
+
+    <!-- UPLOAD PANEL -->
+    <div class="panel">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="logo-badge"><i class="ti ti-salad"></i></div>
+            <div>
+                <span class="pf text-xl" style="color:var(--ink)">Upload a meal</span>
+                <span class="block text-[11px] text-[var(--muted)] font-medium tracking-wide">jpg · png · webp</span>
+            </div>
+        </div>
+
+        <form id="analyzeForm" th:action="@{/nutrition/analyze}" method="post" enctype="multipart/form-data">
+
+            <div id="dropzone" class="upload-zone" onclick="document.getElementById('imageInput').click()">
+                <div class="flex flex-col items-center">
+                    <i class="ti ti-camera-plus text-5xl mb-3" style="color:var(--clay)"></i>
+                    <h4 class="text-sm font-semibold" style="color:var(--pine)">Drop your meal photo here</h4>
+                    <p class="text-xs mt-1" style="color:var(--muted)">or click to browse</p>
+                </div>
+            </div>
+
+            <!-- preview -->
+            <div id="preview-wrap" class="preview-container hidden mt-4">
+                <img id="preview-img" src="#" alt="preview">
+                <div class="food-overlay"></div>
+                <div class="absolute bottom-3 left-4 flex items-center gap-2">
+                    <span class="tag-pill"><i class="ti ti-circle-check-filled text-green-300 text-sm"></i> ready</span>
+                </div>
+                <button type="button" class="remove-btn" onclick="removeImg()"><i class="ti ti-x"></i></button>
+            </div>
+
+            <input id="imageInput" type="file" name="image" accept="image/*" class="hidden" onchange="previewImage(this)">
+
+            <button type="submit" class="btn-primary mt-5">
+                <i class="ti ti-sparkles text-lg"></i> Analyze Food
+            </button>
+        </form>
+
+        <div class="flex gap-4 mt-6 pt-6" style="border-top:1px solid var(--line)">
+            <div class="flex items-center gap-2 text-xs" style="color:var(--muted)"><i class="ti ti-bolt" style="color:var(--clay)"></i> Calories</div>
+            <div class="flex items-center gap-2 text-xs" style="color:var(--muted)"><i class="ti ti-chart-donut" style="color:var(--forest)"></i> Macros</div>
+            <div class="flex items-center gap-2 text-xs" style="color:var(--muted)"><i class="ti ti-stethoscope" style="color:var(--moss)"></i> Insight</div>
+        </div>
+    </div>
+
+    <!-- RESULTS PANEL -->
+    <div class="panel">
+
+        <div th:if="${result}" class="space-y-5">
+
+            <!-- image + ring -->
+            <div class="relative">
+                <img th:src="${imageSrc}" alt="analyzed food" class="food-img">
+                <div class="food-overlay"></div>
+                <div class="absolute bottom-3 left-4 flex flex-wrap items-center gap-2">
+                    <h2 class="text-white text-xl font-bold leading-tight" id="res-name">—</h2>
+                    <span class="tag-pill text-[11px]"><i class="ti ti-sun text-yellow-200"></i> <span id="res-meal">—</span></span>
+                </div>
+                <div class="health-ring">
+                    <svg viewBox="0 0 56 56">
+                        <circle class="ring-bg" cx="28" cy="28" r="23"/>
+                        <circle class="ring-fill" id="ring-fill" cx="28" cy="28" r="23" stroke-dasharray="0 144.5"/>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center text-white text-sm font-bold" id="res-score">—</div>
+                </div>
+            </div>
+
+            <!-- calories -->
+            <div class="cal-hero">
+                <div>
+                    <span class="text-white/70 text-[11px] font-medium uppercase tracking-wide">estimated calories</span>
+                    <div class="flex items-end gap-2">
+                        <span class="text-white text-4xl font-bold" id="res-cal">—</span>
+                        <span class="text-white/50 text-sm font-medium mb-0.5">kcal</span>
+                    </div>
+                    <span class="text-white/40 text-[10px]">per serving</span>
+                </div>
+                <div class="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                    <i class="ti ti-flame text-yellow-300 text-2xl"></i>
+                </div>
+            </div>
+
+            <!-- macros grid -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="macro-pill">
+                    <div class="macro-icon bg-blue-100"><i class="ti ti-meat text-blue-600 text-lg"></i></div>
+                    <div><p class="text-[10px] uppercase tracking-wide" style="color:var(--muted)">protein</p><p class="text-lg font-bold" style="color:var(--ink)"><span id="res-protein">—</span><span class="text-xs font-normal ml-0.5" style="color:var(--muted)">g</span></p></div>
+                </div>
+                <div class="macro-pill">
+                    <div class="macro-icon bg-orange-100"><i class="ti ti-bread text-orange-600 text-lg"></i></div>
+                    <div><p class="text-[10px] uppercase tracking-wide" style="color:var(--muted)">carbs</p><p class="text-lg font-bold" style="color:var(--ink)"><span id="res-carbs">—</span><span class="text-xs font-normal ml-0.5" style="color:var(--muted)">g</span></p></div>
+                </div>
+                <div class="macro-pill">
+                    <div class="macro-icon bg-yellow-100"><i class="ti ti-droplet text-yellow-600 text-lg"></i></div>
+                    <div><p class="text-[10px] uppercase tracking-wide" style="color:var(--muted)">fat</p><p class="text-lg font-bold" style="color:var(--ink)"><span id="res-fat">—</span><span class="text-xs font-normal ml-0.5" style="color:var(--muted)">g</span></p></div>
+                </div>
+                <div class="macro-pill">
+                    <div class="macro-icon bg-green-100"><i class="ti ti-leaf text-green-600 text-lg"></i></div>
+                    <div><p class="text-[10px] uppercase tracking-wide" style="color:var(--muted)">fiber</p><p class="text-lg font-bold" style="color:var(--ink)"><span id="res-fiber">—</span><span class="text-xs font-normal ml-0.5" style="color:var(--muted)">g</span></p></div>
+                </div>
+            </div>
+
+            <!-- sugar row -->
+            <div class="macro-pill rounded-2xl flex items-center justify-between px-5 py-3.5" style="border:1px solid var(--tan)">
+                <div class="flex items-center gap-3">
+                    <div class="macro-icon bg-red-100"><i class="ti ti-candy text-red-600 text-lg"></i></div>
+                    <div><p class="text-[10px] uppercase tracking-wide" style="color:var(--muted)">sugar</p><p class="text-lg font-bold" style="color:var(--ink)"><span id="res-sugar">—</span><span class="text-xs font-normal ml-0.5" style="color:var(--muted)">g</span></p></div>
+                </div>
+                <span class="text-[10px] px-3 py-1 rounded-full" style="color:var(--muted);background:rgba(255,255,255,.6)">added sugars est.</span>
+            </div>
+
+            <!-- insight -->
+            <div class="insight-card">
+                <div class="flex items-center gap-2.5 mb-2">
+                    <i class="ti ti-stethoscope text-lg" style="color:var(--forest)"></i>
+                    <span class="text-sm font-semibold" style="color:var(--pine)">Nutritionist insight</span>
+                </div>
+                <p class="text-sm leading-relaxed" id="res-insight" style="color:var(--ink)">—</p>
+            </div>
+
+            <p class="text-center text-[10px] pt-1" style="color:var(--muted)">Estimates based on visual analysis · portion size may vary</p>
+
+            <!-- hidden raw -->
+            <span id="raw-result" th:text="${result}" class="hidden"></span>
+        </div>
+
+        <!-- empty state (when no result) -->
+        <div th:unless="${result}" class="empty-hero">
+            <div class="empty-icon"><i class="ti ti-chart-donut-3"></i></div>
+            <p class="pf text-lg" style="color:var(--pine)">Your breakdown appears here</p>
+            <p class="text-sm mt-2 max-w-xs" style="color:var(--muted)">Upload a meal photo on the left and CuraAI will estimate calories, macros and a quick health score.</p>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // preview handlers
+    function previewImage(input) {
+        if (!input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('preview-wrap').classList.remove('hidden');
+            document.getElementById('dropzone').classList.add('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    function removeImg() {
+        document.getElementById('preview-wrap').classList.add('hidden');
+        document.getElementById('dropzone').classList.remove('hidden');
+        document.getElementById('imageInput').value = '';
+    }
+
+    // parse result
+    function extract(text, key) {
+        const regex = new RegExp(key + ':\\s*(.+)', 'i');
+        const m = text.match(regex);
+        return m ? m[1].trim() : '—';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const raw = document.getElementById('raw-result');
+        if (!raw) return;
+        const text = raw.innerText;
+
+        document.getElementById('res-name').textContent = extract(text, 'FOOD_NAME');
+        document.getElementById('res-cal').textContent = extract(text, 'CALORIES');
+        document.getElementById('res-protein').textContent = extract(text, 'PROTEIN');
+        document.getElementById('res-carbs').textContent = extract(text, 'CARBS');
+        document.getElementById('res-fat').textContent = extract(text, 'FAT');
+        document.getElementById('res-fiber').textContent = extract(text, 'FIBER');
+        document.getElementById('res-sugar').textContent = extract(text, 'SUGAR');
+        document.getElementById('res-meal').textContent = extract(text, 'MEAL_TYPE');
+        document.getElementById('res-insight').textContent = extract(text, 'INSIGHT');
+
+        const score = parseInt(extract(text, 'HEALTH_SCORE')) || 0;
+        document.getElementById('res-score').textContent = score + '/10';
+        const r = 23, circ = 2 * Math.PI * r;
+        const fill = document.getElementById('ring-fill');
+        fill.setAttribute('stroke-dasharray', (score / 10 * circ) + ' ' + circ);
+    });
+
+    // drag & drop polish
+    const dropzone = document.getElementById('dropzone');
+    if (dropzone) {
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const input = document.getElementById('imageInput');
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                previewImage(input);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

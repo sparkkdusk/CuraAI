@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nutrition Activity · CuraAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root{--forest:#26372b;--pine:#18251d;--moss:#63755f;--sage:#aebda7;--mist:#e2e9dc;--oat:#f4f0e8;--paper:#fbfaf6;--tan:#d8c3a5;--clay:#af714e;--ink:#263029;--muted:#70796e;--line:rgba(38,55,43,.16)}
+        *{box-sizing:border-box}
+        body { font-family: 'DM Sans', sans-serif; background:linear-gradient(180deg,var(--oat) 0%,var(--mist) 100%); color:var(--ink); margin:0; }
+        .pf { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacing: -.03em; }
+        .label{font:11px 'DM Mono',monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--clay)}
+        .label:before{content:'✦';margin-right:8px}
+
+        nav{background:var(--pine);border-bottom:1px solid rgba(255,255,255,.1)}
+        .logout-btn{font:12px 'DM Sans';color:#e3d4c4;background:transparent;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:8px 16px;transition:.25s}
+        .logout-btn:hover{background:rgba(255,255,255,.1);border-color:#fff;color:#fff}
+
+        .panel{background:var(--paper);border:1px solid var(--line);border-radius:26px}
+
+        /* summary stat dock */
+        .stat-dock{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:linear-gradient(160deg,var(--paper),var(--mist));border:1px solid var(--line);border-radius:26px;overflow:hidden;margin-bottom:24px}
+        .stat-item{padding:24px 24px}
+        .stat-item{border-right:1px solid var(--line)}
+        .stat-item:last-child{border-right:none}
+        .stat-item .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+        .stat-item .v{font:34px 'Playfair Display';color:var(--pine);margin-top:8px}
+        .stat-item .sub{font-size:11px;color:var(--muted);margin-top:2px}
+        @media(max-width:900px){.stat-dock{grid-template-columns:repeat(2,1fr)}.stat-item:nth-child(2){border-right:none}.stat-item:nth-child(1),.stat-item:nth-child(2){border-bottom:1px solid var(--line)}}
+        @media(max-width:520px){.stat-dock{grid-template-columns:1fr}.stat-item{border-right:none!important;border-bottom:1px solid var(--line)}.stat-item:last-child{border-bottom:none}}
+
+        /* progress bar */
+        .track{width:100%;height:14px;background:var(--mist);border-radius:999px;overflow:hidden}
+        .fill{height:100%;background:linear-gradient(90deg,var(--clay),var(--forest))}
+
+        /* day rows - editorial, no boxes */
+        .day-row{padding:22px 4px;border-top:1px solid var(--line)}
+        .day-row:last-child{border-bottom:1px solid var(--line)}
+        .day-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+        .log-chip{background:var(--sage);color:var(--pine);font-size:12px;padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:7px}
+        .log-chip i{color:var(--clay)}
+
+        .start-btn{background:var(--forest);color:#fff;padding:11px 22px;border-radius:999px;font-size:13px;font-weight:600;transition:.25s;display:inline-flex;align-items:center;gap:8px}
+        .start-btn:hover{background:var(--clay)}
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="px-12 h-[72px] flex justify-between items-center sticky top-0 z-30">
+    <div class="pf text-2xl" style="color:#f6f3eb">Cura<span style="color:#d4b58d;font-weight:500">AI</span></div>
+    <div class="flex gap-7 text-[12.5px]" style="color:#cfd8ca">
+        <a th:href="@{/dashboard}" class="hover:text-white transition">Dashboard</a>
+        <a th:href="@{/exercise}" class="hover:text-white transition">Exercise</a>
+        <a th:href="@{/nutrition}" class="hover:text-white transition">Nutrition</a>
+        <a th:href="@{/nutrition-activity}" style="color:#d9b78f;font-weight:600">Activity</a>
+        <a th:href="@{/prescription}" class="hover:text-white transition">Prescription</a>
+        <a th:href="@{/chat}" class="hover:text-white transition">AI Assistant</a>
+    </div>
+    <form th:action="@{/logout}" method="post" class="m-0">
+        <button type="submit" class="logout-btn cursor-pointer">Logout</button>
+    </form>
+</nav>
+
+<!-- HEADER -->
+<section class="px-12 pt-10 pb-6">
+    <div class="label">Seven-day rhythm</div>
+    <h1 class="text-3xl pf mt-2" style="color:var(--pine)">Nutrition Activity</h1>
+    <p class="mt-2 max-w-2xl" style="color:var(--muted)">
+        Calories consumed vs. your daily goal, for the last 7 days.
+    </p>
+</section>
+
+<section class="px-12 pb-16">
+
+    <!-- SUMMARY -->
+    <div class="stat-dock">
+        <div class="stat-item">
+            <div class="k">Consumed Today</div>
+            <div class="v" th:text="${todayCalories ?: 0}">0</div>
+            <div class="sub">kcal</div>
+        </div>
+        <div class="stat-item">
+            <div class="k">Daily Goal</div>
+            <div class="v" th:text="${calorieGoal ?: 0}">0</div>
+            <div class="sub">kcal</div>
+        </div>
+        <div class="stat-item">
+            <div class="k">Remaining Today</div>
+            <div class="v" th:text="${remainingCalories ?: 0}">0</div>
+            <div class="sub">kcal</div>
+        </div>
+        <div class="stat-item">
+            <div class="k">Weekly Average</div>
+            <div class="v" th:text="${weeklyAvgCalories ?: 0}">0</div>
+            <div class="sub">kcal / day</div>
+        </div>
+    </div>
+
+    <!-- TODAY'S PROGRESS BAR -->
+    <div class="panel p-8 mb-6" th:if="${calorieGoal != null and calorieGoal > 0}">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-xl pf" style="color:var(--pine)">Today's Progress</h2>
+            <span class="text-sm" style="color:var(--muted)">
+                <span class="font-semibold" style="color:var(--forest)" th:text="${todayCalories ?: 0}">0</span> /
+                <span th:text="${calorieGoal}">2000</span> kcal
+            </span>
+        </div>
+        <div class="track">
+            <div class="fill"
+                 th:style="${'width:' + T(java.lang.Math).min(100, (todayCalories * 100) / calorieGoal) + '%'}">
+            </div>
+        </div>
+    </div>
+
+    <!-- DAILY BREAKDOWN -->
+    <div class="panel p-8">
+
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <h2 class="text-xl pf" style="color:var(--pine)">This Week, Day by Day</h2>
+            <a th:href="@{/nutrition}" class="start-btn">
+                <i class="fa-solid fa-camera"></i> Analyze a Meal
+            </a>
+        </div>
+
+        <div th:if="${week != null}">
+
+            <div th:each="day : ${week}" class="day-row">
+
+                <div class="flex items-center justify-between flex-wrap gap-2">
+
+                    <div class="flex items-center gap-3">
+                        <span class="day-dot"
+                              th:style="${'background-color:' + (day.totalCalories > 0 ? '#af714e' : '#d8c3a5')}"></span>
+                        <span class="text-base font-semibold" style="color:var(--ink)" th:text="${day.dayLabel}">Mon</span>
+                        <span class="text-xs" style="color:var(--muted)" th:text="${day.date}">2026-07-01</span>
+                    </div>
+
+                    <div class="text-sm" style="color:var(--muted)" th:if="${day.totalCalories == 0}">
+                        No meals logged
+                    </div>
+
+                    <div class="text-sm font-medium" style="color:var(--forest)" th:if="${day.totalCalories > 0}">
+                        <span th:text="${day.totalCalories}">0</span> kcal
+                        <span style="color:var(--muted)" th:if="${calorieGoal != null and calorieGoal > 0}">
+                            of <span th:text="${calorieGoal}">2000</span>
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- Individual logged meals for that day -->
+                <div class="mt-3 flex flex-wrap gap-2" th:if="${not #lists.isEmpty(day.logs)}">
+                    <div th:each="log : ${day.logs}" class="log-chip">
+                        <i class="fa-solid fa-utensils"></i>
+                        <span th:text="${log.foodName}">Grilled chicken</span>
+                        <span style="color:var(--muted)" th:if="${log.mealType != null}">· <span th:text="${log.mealType}">Lunch</span></span>
+                        <span style="color:var(--muted)">· <span th:text="${log.calories}">0</span> kcal</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <p class="text-sm mt-4" style="color:var(--muted)" th:if="${week == null}">
+            No meals logged yet. Analyze a meal to begin tracking your week.
+        </p>
+
+    </div>
+
+</section>
+
+</body>
+</html>
